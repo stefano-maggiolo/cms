@@ -12,7 +12,7 @@ These are our requirements (in particular we highlight those that are not usuall
 
 * `PostgreSQL <http://www.postgresql.org/>`_ >= 9.0;
 
-  .. We need 9.0 because of pg_largeobject_metadata (in drop_db).
+  .. We need 9.0 because of pg_largeobject_metadata (in drop_db) and because of asynchronous notification payload.
 
 * `GNU compiler collection <https://gcc.gnu.org/>`_ (in particular the C compiler ``gcc``);
 

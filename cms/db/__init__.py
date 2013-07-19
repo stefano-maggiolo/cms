@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 # Define what this package will provide.
 
 __all__ = [
-    "version", "engine",
+    "version", "engine", "sa_entities",
     # session
     "Session", "ScopedSession", "SessionGen", "custom_psycopg2_connection",
     # base
@@ -71,6 +71,8 @@ __all__ = [
     "init_db",
     # drop
     "drop_db",
+    # watcher
+    "Watcher",
     # util
     "test_db_connection", "get_contest_list", "is_contest_id",
     "ask_for_contest",
@@ -102,8 +104,25 @@ from .usertest import UserTest, UserTestFile, UserTestManager, \
 from .printjob import PrintJob
 from .fsobject import FSObject
 
+
+sa_entities = [
+    # contest
+    Contest, Announcement,
+    # user
+    User, Message, Question,
+    # task
+    Task, Statement, Attachment, SubmissionFormatElement, Dataset, Manager,
+    Testcase,
+    # submission
+    Submission, File, Token, SubmissionResult, Executable, Evaluation,
+    # usertest
+    UserTest, UserTestFile, UserTestManager, UserTestResult,
+    UserTestExecutable]
+
+
 from .init import init_db
 from .drop import drop_db
+from .watcher import Watcher
 
 from .util import test_db_connection, get_contest_list, is_contest_id, \
     ask_for_contest
