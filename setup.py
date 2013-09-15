@@ -70,6 +70,18 @@ def do_setup():
         ],
         "cms.service": [
             os.path.join("templates", "printing", "*.*"),
+        "cms.web": [
+            os.path.join("admin", "*.*"),
+            os.path.join("admin", "css", "*.*"),
+            os.path.join("admin", "img", "*.*"),
+            os.path.join("admin", "js", "*.*"),
+            os.path.join("admin", "lib", "jquery", "*.*"),
+            os.path.join("admin", "lib", "angular", "*.*"),
+            os.path.join("admin", "lib", "angular-ui", "*.*"),
+            os.path.join("admin", "lib", "bootstrap", "css", "*.*"),
+            os.path.join("admin", "lib", "bootstrap", "fonts", "*.*"),
+            os.path.join("admin", "partials", "*.*"),
+            os.path.join("admin", "views", "*.*"),
         ],
         "cmsranking": [
             os.path.join("static", "img", "*.*"),
@@ -111,6 +123,7 @@ def do_setup():
                     "cms.grading",
                     "cms.grading.scoretypes",
                     "cms.grading.tasktypes",
+                    "cms.web",
                     "cmscommon",
                     "cmsranking",
                     "cmscontrib",
