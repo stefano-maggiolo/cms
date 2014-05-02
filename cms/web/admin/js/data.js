@@ -442,6 +442,7 @@ angular.module('aws.data', []).value('dataModel', {
             deferred.reject(reason);
         });
     };
+    self._reinit();
 
     self._action_listeners = [];
 
