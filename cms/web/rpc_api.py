@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import gevent
 import json
 import logging
 
@@ -31,8 +32,7 @@ from werkzeug.exceptions import HTTPException, NotFound, \
     UnsupportedMediaType, BadRequest, ServiceUnavailable
 from werkzeug.wsgi import responder
 
-from cms.io import ServiceCoord
-from cms.io.GeventLibrary import rpc_callback
+from cms import ServiceCoord
 
 
 logger = logging.getLogger(__name__)
@@ -135,12 +135,15 @@ class RPCAPIMiddleware(object):
 
         value = AsyncResult()
 
-        @rpc_callback
-        def callback(service, data, plus=None, error=None):
-            value.set({'data': data, 'error': error})
+        def callback(result):
+            try:
+                value.set({'data': result.get(), 'error': None})
+            except Exception as error:
+                value.set({'data': None, 'error': error.msg})
 
-        self._service.remote_services[remote_service].execute_rpc(
-            args['method'], data, callback)
+        result = self._service.remote_services[remote_service].execute_rpc(
+            args['method'], data)
+        gevent.spawn(callback, result)
 
         response.status_code = 200
         response.mimetype = "application/json"

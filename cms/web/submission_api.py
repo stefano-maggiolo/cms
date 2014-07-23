@@ -38,7 +38,7 @@ from cms.db import SessionGen, Task, Dataset, Testcase, Submission, File, \
     Token, SubmissionResult
 from cms.grading import format_status_text
 from cms.grading.scoretypes import get_score_type
-from cmscommon.DateTime import make_timestamp
+from cmscommon.datetime import make_timestamp
 
 
 logger = logging.getLogger(__name__)

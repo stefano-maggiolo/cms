@@ -88,7 +88,9 @@ import six
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.types import \
-    Boolean, Integer, Float, String, Unicode, DateTime, Interval
+    Boolean, Integer, Float, String, Unicode, DateTime, Interval, Enum
+
+from cms.db import RepeatedUnicode
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule, EndpointPrefix, Submount, RuleTemplate
@@ -97,7 +99,7 @@ from werkzeug.exceptions import HTTPException, BadRequest, NotFound, InternalSer
 from werkzeug.wsgi import responder
 
 from cms.db import SessionGen, Base, sa_entities
-from cmscommon.DateTime import make_datetime, make_timestamp
+from cmscommon.datetime import make_datetime, make_timestamp
 
 
 logger = logging.getLogger(__name__)
@@ -129,6 +131,10 @@ _TYPE_MAP = {
                lambda x: make_datetime(x), lambda x: make_timestamp(x)),
     Interval: (six.integer_types + (float,),
                lambda x: timedelta(seconds=x), lambda x: x.total_seconds()),
+    Enum: (six.text_type,
+           lambda x: str(x), lambda x: x),
+    RepeatedUnicode: (list,
+                      lambda x: x.split(','), lambda x: ','.join(x)),
 }
 
 

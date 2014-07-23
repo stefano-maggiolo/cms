@@ -50,6 +50,9 @@ class WebService(Service):
                  listen_address=""):
         super(WebService, self).__init__(shard)
 
+        self.listen_port = listen_port
+        self.listen_address = listen_address
+
         self.wsgi_app = tornado.wsgi.WSGIApplication(handlers, **parameters)
         self.wsgi_app.service = self
 
@@ -67,15 +70,14 @@ class WebService(Service):
         if parameters.get('is_proxy_used', False):
             self.wsgi_app = ProxyFix(self.wsgi_app)
 
-        self.web_server = WSGIServer((listen_address, listen_port),
-                                     self.wsgi_app)
-
     def run(self):
         """Start the WebService.
 
         Both the WSGI server and the RPC server are started.
 
         """
+        self.web_server = WSGIServer((self.listen_address, self.listen_port),
+                                     self.wsgi_app)
         self.web_server.start()
         Service.run(self)
         self.web_server.stop()
