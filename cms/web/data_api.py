@@ -134,7 +134,7 @@ _TYPE_MAP = {
     Enum: (six.text_type,
            lambda x: str(x), lambda x: x),
     RepeatedUnicode: (list,
-                      lambda x: x.split(','), lambda x: ','.join(x)),
+                      lambda x: x, lambda x: x),
 }
 
 

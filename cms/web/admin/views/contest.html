@@ -95,6 +95,13 @@
         </fieldset>
         <fieldset>
             <legend>Tokens</legend>
+            <div class="form-group" ng-class="{'has-error': !form.token_mode.$valid}">
+                <label for="contest_token_mode" class="col-md-3 control-label">Token mode</label>
+                <div class="col-md-9">
+                    <select id="contest_token_mode" name="token_mode" class="form-control" ng-model="contest.token_mode" ng-options="['disable', 'finite', 'infinite']"></select>
+                </div>
+            </div>
+            
             <div class="form-group" ng-class="{'has-error': !form.token_initial.$valid}">
                 <label for="contest_token_initial" class="col-md-3 control-label">Initial number of tokens</label>
                 <div class="col-md-9">

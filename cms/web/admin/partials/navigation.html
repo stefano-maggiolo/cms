@@ -28,7 +28,7 @@
             <ul>
                 <li ng-repeat="contest in contests | orderBy: 'begin'" ng-class="{open: isActiveContest(contest), active: isActiveContest(contest) && isActiveSubpage('general')}">
                     <a href="#!/contests/{{contest._ref}}">
-                        {{contest.name}}
+                        {{contest.name}} ({{contest._ref}})
                         <span class="badge" style="position: absolute; top: 11px; right: 15px; background-color: #f0ad4e !important;" ng-hide="isActiveContest(contest)">{{unread_count[contest._ref]}}</span>
                     </a>
                     <ul>

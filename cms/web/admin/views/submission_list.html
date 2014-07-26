@@ -86,7 +86,7 @@
         <tbody>
             <tr ng-repeat="submission in submissions | orderBy:'-timestamp' | paginate:pages_current:20">
                 <td>
-                    <span tooltip="{{submission.timestamp *1000 | date:'yyyy-MM-dd HH:mm:ss'}}" tooltip-placement="top">
+                    <span tooltip="{{submission.timestamp * 1000 | date:'yyyy-MM-dd HH:mm:ss'}}" tooltip-placement="top">
                         {{submission.timestamp | contestTime:contest.start}}</a>
                     </span>
                 </td>
