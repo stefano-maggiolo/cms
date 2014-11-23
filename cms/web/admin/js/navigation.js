@@ -14,7 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
+
+goog.provide('aws.navigation');
+
+
 
 angular.module('aws.navigation', [])
     // FIXME We depend on questionWatcher just to have it loaded and started.
@@ -111,7 +116,7 @@ angular.module('aws.navigation', [])
                 }
 
                 $scope.update();
-            }],
+            }]
         };
         return directiveDefinitionObject;
     }]).

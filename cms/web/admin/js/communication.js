@@ -16,7 +16,8 @@
  */
 'use strict';
 
-/* Directives */
+goog.provide('aws.communication');
+
 
 
 angular.module('aws.communication', [])
@@ -24,7 +25,7 @@ angular.module('aws.communication', [])
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
-                announcement: "=data",
+                announcement: "=data"
             },
             templateUrl: 'partials/announcement.html',
             replace: true,
@@ -37,7 +38,7 @@ angular.module('aws.communication', [])
                     });
                 };
 
-            }],
+            }]
         };
         return directiveDefinitionObject;
     }])
@@ -72,8 +73,8 @@ angular.module('aws.communication', [])
                 resolve: {
                     contest: function() {
                         return $q.when($scope.contest);
-                    },
-                },
+                    }
+                }
             }).open().then(function(result) {
                 if (result == "done") {
                     $scope.load();
@@ -104,7 +105,7 @@ angular.module('aws.communication', [])
             restrict: 'E',
             scope: {
                 message: "=data",
-                users: "=users",
+                users: "=users"
             },
             templateUrl: 'partials/message.html',
             replace: true,
@@ -117,7 +118,7 @@ angular.module('aws.communication', [])
                     });
                 };
 
-            }],
+            }]
         };
         return directiveDefinitionObject;
     }])
@@ -164,8 +165,8 @@ angular.module('aws.communication', [])
                 resolve: {
                     users: function() {
                         return $q.when($scope.users);
-                    },
-                },
+                    }
+                }
             }).open().then(function(result) {
                 if (result == "done") {
                     $scope.load();
@@ -202,7 +203,7 @@ angular.module('aws.communication', [])
             restrict: 'E',
             scope: {
                 question: "=data",
-                users: "=users",
+                users: "=users"
             },
             templateUrl: 'partials/question.html',
             replace: true,
@@ -251,7 +252,7 @@ angular.module('aws.communication', [])
                     });
                 };
 
-            }],
+            }]
         };
         return directiveDefinitionObject;
     }])

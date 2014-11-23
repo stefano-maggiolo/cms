@@ -14,7 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
+
+goog.provide('aws.notifications');
+
+
 
 angular.module('aws.notifications', [])
     .factory('notificationHub', [function() {
@@ -29,7 +34,7 @@ angular.module('aws.notifications', [])
                 angular.forEach(handlers, function(item) {
                     item.call(this, level, head, body);
                 });
-            },
+            }
         };
         return service;
     }])
@@ -37,11 +42,11 @@ angular.module('aws.notifications', [])
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {},
-            template: '<div>\
-<div ng-repeat="n in notifications" ng-class="getClass(n.level)">\
-<button type="button" class="close" ng-click="close($index)">&times;</button> <strong>{{n.head}}</strong> {{n.body}} \
-</div>\
-</div>',
+            template: '<div>' +
+                + '<div ng-repeat="n in notifications" ng-class="getClass(n.level)">'
+                + '<button type="button" class="close" ng-click="close($index)">&times;</button> <strong>{{n.head}}</strong> {{n.body}} '
+                + '</div>'
+                + '</div>',
             controller: ['$scope', '$element', '$attrs', '$transclude', function($scope, $element, $attrs, $transclude) {
                 $scope.notifications = new Array();
 
@@ -64,7 +69,7 @@ angular.module('aws.notifications', [])
                 $scope.close = function(idx) {
                     $scope.notifications.splice(idx, 1);
                 };
-            }],
+            }]
         };
         return directiveDefinitionObject;
     }]);

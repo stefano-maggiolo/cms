@@ -14,9 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-/* Controllers */
+goog.provide('aws.ranking');
+
+
 
 angular.module('aws.ranking', [])
     .controller('RankingCtrl', ['$scope', '$routeParams', '$http', 'dataStore', 'navService', function($scope, $routeParams, $http, store, nav) {

@@ -14,9 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-/* Controllers */
+goog.provide('aws.contest');
+
+
 
 angular.module('aws.contest', [])
     .controller('ContestListCtrl', ['$scope', '$location', '$dialog', 'dataStore', 'rpcRequest', 'notificationHub', function($scope, $location, $dialog, store, rpc, hub) {
@@ -32,7 +35,7 @@ angular.module('aws.contest', [])
                 backdropFade: true,
                 keyboard: true,
                 backdrop: true,
-                backdropClick: true,
+                backdropClick: true
             }).open();
         };
 

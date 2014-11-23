@@ -14,9 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-/* Controllers */
+goog.provide('aws.submission');
+
+
 
 angular.module('aws.submission', [])
     .controller('SubmissionListCtrl', ['$http', '$scope', '$routeParams', '$location', '$dialog', 'dataStore', 'rpcRequest', 'notificationHub', 'navService', function($http, $scope, $routeParams, $location, $dialog, store, rpc, hub, nav) {
@@ -259,8 +262,8 @@ angular.module('aws.submission', [])
                 resolve: {
                     submission: function() {
                         return $http.get("submissions/" + submission_id, {params: {dataset_id: dataset_id}}).then(function(response) {return response.data;});
-                    },
-                },
+                    }
+                }
             }).open();
         };
 
@@ -300,7 +303,7 @@ angular.module('aws.submission', [])
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
-                data: "=data",
+                data: "=data"
             },
             template: '<div class="score-details-sandbox" ng-bind-html-unsafe="data"></div>',
             replace: true,
@@ -320,7 +323,7 @@ angular.module('aws.submission', [])
                         });
                     });
                 });
-            },
+            }
         };
         return directiveDefinitionObject;
     }]).

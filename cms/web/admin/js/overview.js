@@ -14,9 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-/* Controllers */
+goog.provide('aws.overview');
+
+
 
 angular.module('aws.overview', [])
     .controller('OverviewCtrl', ['$scope', function ($scope) {
@@ -32,7 +35,7 @@ angular.module('aws.overview', [])
                 method: "@rpcMethod",
                 args: "@rpcArgs",
                 result: "=data",
-                error: "=error",
+                error: "=error"
             },
             link: function($scope) {
                 var last_check = null;
@@ -55,7 +58,7 @@ angular.module('aws.overview', [])
                 $scope.$on("$destroy", function() {
                     $timeout.cancel(timeout_id);
                 });
-            },
+            }
         };
         return directiveDefinitionObject;
     }]).
@@ -63,7 +66,7 @@ angular.module('aws.overview', [])
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
-                stats: "=data",
+                stats: "=data"
             },
             templateUrl: 'partials/submission_status.html',
             replace: true,
@@ -84,7 +87,7 @@ angular.module('aws.overview', [])
                 $scope.isNotZero = function(category) {
                     return $scope.stats[category] != 0;
                 };
-            },
+            }
         };
         return directiveDefinitionObject;
     }]).
@@ -92,7 +95,7 @@ angular.module('aws.overview', [])
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
-                queue: "=data",
+                queue: "=data"
             },
             templateUrl: 'partials/queue_status.html',
             replace: true,
@@ -104,7 +107,7 @@ angular.module('aws.overview', [])
                 $scope.isQueueEmpty = function() {
                     return $scope.queue.length == 0;
                 };
-            },
+            }
         };
         return directiveDefinitionObject;
     }]).
@@ -112,7 +115,7 @@ angular.module('aws.overview', [])
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
-                workers: "=data",
+                workers: "=data"
             },
             templateUrl: 'partials/workers_status.html',
             replace: true,
@@ -124,7 +127,7 @@ angular.module('aws.overview', [])
                 $scope.areWorkersAvailable = function() {
                     return Object.keys($scope.workers).length > 0;
                 };
-            },
+            }
         };
         return directiveDefinitionObject;
     }]).
@@ -132,7 +135,7 @@ angular.module('aws.overview', [])
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
-                logs: "=data",
+                logs: "=data"
             },
             templateUrl: 'partials/recent_logs.html',
             replace: true,
@@ -144,7 +147,7 @@ angular.module('aws.overview', [])
                 $scope.areLogsAvailable = function() {
                     return $scope.logs.length > 0;
                 };
-            },
+            }
         };
         return directiveDefinitionObject;
     }]).

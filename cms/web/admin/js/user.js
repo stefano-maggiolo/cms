@@ -14,9 +14,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-/* Controllers */
+goog.provide('aws.user');
+
 
 angular.module('aws.user', [])
     .controller('UserListCtrl', ['$scope', '$routeParams', '$location', '$q', '$dialog', 'dataStore', 'rpcRequest', 'notificationHub', 'navService', function($scope, $routeParams, $location, $q, $dialog, store, rpc, hub, nav) {
@@ -45,8 +47,8 @@ angular.module('aws.user', [])
                 resolve: {
                     contest: function() {
                         return $q.when($scope.contest);
-                    },
-                },
+                    }
+                }
             }).open();
         };
 

@@ -14,7 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
+
+goog.provide('aws.data');
+
+
 
 angular.module('aws.data', []).value('dataModel', {
     // contest
@@ -25,16 +30,16 @@ angular.module('aws.data', []).value('dataModel', {
         relationships: {
             announcements: "Announcement",
             tasks: "Task",
-            users: "User",
-        },
+            users: "User"
+        }
     },
     Announcement: {
         tablename: "announcements",
         parents: ["contest"],
         children: [],
         relationships: {
-            contest: "Contest",
-        },
+            contest: "Contest"
+        }
     },
     // user
     User: {
@@ -46,24 +51,24 @@ angular.module('aws.data', []).value('dataModel', {
             messages: "Message",
             questions: "Question",
             submissions: "Submission",
-            user_tests: "UserTest",
-        },
+            user_tests: "UserTest"
+        }
     },
     Message: {
         tablename: "messages",
         parents: ["user"],
         children: [],
         relationships: {
-            user: "User",
-        },
+            user: "User"
+        }
     },
     Question: {
         tablename: "questions",
         parents: ["user"],
         children: [],
         relationships: {
-            user: "User",
-        },
+            user: "User"
+        }
     },
     // task
     Task: {
@@ -78,32 +83,32 @@ angular.module('aws.data', []).value('dataModel', {
             statements: "Statement",
             submission_format: "SubmissionFormatElement",
             submissions: "Submission",
-            user_tests: "UserTest",
-        },
+            user_tests: "UserTest"
+        }
     },
     Statement: {
         tablename: "statements",
         parents: ["task"],
         children: [],
         relationships: {
-            task: "Task",
-        },
+            task: "Task"
+        }
     },
     Attachment: {
         tablename: "attachments",
         parents: ["task"],
         children: [],
         relationships: {
-            task: "Task",
-        },
+            task: "Task"
+        }
     },
     SubmissionFormatElement: {
         tablename: "submission_format_elements",
         parents: ["task"],
         children: [],
         relationships: {
-            task: "Task",
-        },
+            task: "Task"
+        }
     },
     Dataset: {
         tablename: "datasets",
@@ -112,24 +117,24 @@ angular.module('aws.data', []).value('dataModel', {
         relationships: {
             managers: "Manager",
             task: "Task",
-            testcases: "Testcase",
-        },
+            testcases: "Testcase"
+        }
     },
     Manager: {
         tablename: "managers",
         parents: ["dataset"],
         children: [],
         relationships: {
-            dataset: "Dataset",
-        },
+            dataset: "Dataset"
+        }
     },
     Testcase: {
         tablename: "testcases",
         parents: ["dataset"],
         children: [],
         relationships: {
-            dataset: "Dataset",
-        },
+            dataset: "Dataset"
+        }
     },
     // submission
     Submission: {
@@ -139,24 +144,24 @@ angular.module('aws.data', []).value('dataModel', {
         relationships: {
             files: "File",
             results: "SubmissionResult",
-            token: "Token",
-        },
+            token: "Token"
+        }
     },
     File: {
         tablename: "files",
         parents: ["submission"],
         children: [],
         relationships: {
-            submission: "Submission",
-        },
+            submission: "Submission"
+        }
     },
     Token: {
         tablename: "tokens",
         parents: ["submission"],
         children: [],
         relationships: {
-            submission: "Submission",
-        },
+            submission: "Submission"
+        }
     },
     SubmissionResult: {
         tablename: "submission_results",
@@ -166,8 +171,8 @@ angular.module('aws.data', []).value('dataModel', {
             dataset: "Dataset",
             evaluations: "Evaluation",
             executables: "Executable",
-            submission: "Submission",
-        },
+            submission: "Submission"
+        }
     },
     Executable: {
         tablename: "executables",
@@ -176,8 +181,8 @@ angular.module('aws.data', []).value('dataModel', {
         relationships: {
             dataset: "Dataset",
             submission: "Submission",
-            submission_result: "SubmissionResult",
-        },
+            submission_result: "SubmissionResult"
+        }
     },
     Evaluation: {
         tablename: "evaluations",
@@ -187,8 +192,8 @@ angular.module('aws.data', []).value('dataModel', {
             dataset: "Dataset",
             submission: "Submission",
             submission_result: "SubmissionResult",
-            testcase: "Testcase",
-        },
+            testcase: "Testcase"
+        }
     },
     // usertest
     UserTest: {
@@ -198,24 +203,24 @@ angular.module('aws.data', []).value('dataModel', {
         relationships: {
             files: "UserTestFile",
             managers: "UserTestManager",
-            results: "UserTestResult",
-        },
+            results: "UserTestResult"
+        }
     },
     UserTestFile: {
         tablename: "user_test_files",
         parents: ["user_test"],
         children: [],
         relationships: {
-            submission: "UserTest",
-        },
+            submission: "UserTest"
+        }
     },
     UserTestManager: {
         tablename: "user_test_managers",
         parents: ["user_test"],
         children: [],
         relationships: {
-            submission: "UserTest",
-        },
+            submission: "UserTest"
+        }
     },
     UserTestResult: {
         tablename: "user_test_results",
@@ -224,8 +229,8 @@ angular.module('aws.data', []).value('dataModel', {
         relationships: {
             dataset: "Dataset",
             executables: "UserTestExecutable",
-            submission: "Submission",
-        },
+            submission: "Submission"
+        }
     },
     UserTestExecutable: {
         tablename: "user_test_executables",
@@ -234,9 +239,9 @@ angular.module('aws.data', []).value('dataModel', {
         relationships: {
             dataset: "Dataset",
             user_test: "UserTest",
-            user_test_result: "UserTestResult",
-        },
-    },
+            user_test_result: "UserTestResult"
+        }
+    }
 }).factory('dataStore', ['$http', '$q', '$rootScope', 'dataModel', function($http, $q, $rootScope, model) {
     var self = {};
 

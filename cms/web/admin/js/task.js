@@ -14,9 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-/* Controllers */
+goog.provide('aws.task');
+
+
 
 angular.module('aws.task', [])
     .controller('TaskListCtrl', ['$scope', '$routeParams', '$location', '$q', '$dialog', 'dataStore', 'rpcRequest', 'notificationHub', 'navService', function($scope, $routeParams, $location, $q, $dialog, store, rpc, hub, nav) {
@@ -52,8 +55,8 @@ angular.module('aws.task', [])
                             max_num = Math.max(max_num, task.num);
                         });
                         return $q.when(max_num + 1);
-                    },
-                },
+                    }
+                }
             }).open();
         };
 
@@ -177,8 +180,8 @@ angular.module('aws.task', [])
                 resolve: {
                     task: function() {
                         return $q.when($scope.master);
-                    },
-                },
+                    }
+                }
             }).open();
         };
 
@@ -194,8 +197,8 @@ angular.module('aws.task', [])
                 resolve: {
                     task: function() {
                         return $q.when($scope.master);
-                    },
-                },
+                    }
+                }
             }).open();
         };
 

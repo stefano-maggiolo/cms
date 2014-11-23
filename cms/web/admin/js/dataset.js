@@ -14,9 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-/* Controllers */
+goog.provide('aws.dataset');
+
+
 
 angular.module('aws.dataset', [])
     .controller('DatasetListCtrl', ['$scope', '$routeParams', '$location', '$q', '$http', '$dialog', 'dataStore', 'rpcRequest', 'notificationHub', 'navService', function($scope, $routeParams, $location, $q, $http, $dialog, store, rpc, hub, nav) {
@@ -52,8 +55,8 @@ angular.module('aws.dataset', [])
                 resolve: {
                     task: function() {
                         return $q.when($scope.task);
-                    },
-                },
+                    }
+                }
             }).open();
         };
 
@@ -69,8 +72,8 @@ angular.module('aws.dataset', [])
                 resolve: {
                     dataset: function() {
                         return $q.when(dataset);
-                    },
-                },
+                    }
+                }
             }).open();
         };
 
@@ -86,8 +89,8 @@ angular.module('aws.dataset', [])
                 resolve: {
                     dataset: function() {
                         return $q.when(dataset);
-                    },
-                },
+                    }
+                }
             }).open().then(function(result) {
                 if (result == "done") {
                     $scope.load();
@@ -239,8 +242,8 @@ angular.module('aws.dataset', [])
                 resolve: {
                     submission: function() {
                         return $http.get("submissions/" + submission._ref, {params: {dataset_id: dataset._ref}}).then(function(response) {return response.data;});
-                    },
-                },
+                    }
+                }
             }).open();
         };
 

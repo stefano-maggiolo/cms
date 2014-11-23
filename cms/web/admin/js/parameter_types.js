@@ -14,9 +14,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-/* Parameter Types */
+goog.provide('aws.parametertypes');
+
+
 
 function generate_template(scope, model, model_path, value_path, callback) {
     var template = '<div class="form-group">';
@@ -66,13 +69,13 @@ function generate_template(scope, model, model_path, value_path, callback) {
 }
 
 
-angular.module('aws.parameter_types', [])
+angular.module('aws.parametertypes', [])
     .directive('taskType', ['$compile', '$http', function ($compile, $http) {
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
                 name: "=name",
-                parameters: "=parameters",
+                parameters: "=parameters"
             },
             link: function(scope, elem, attr, ctrl) {
                 scope.models = {}
@@ -119,7 +122,7 @@ angular.module('aws.parameter_types', [])
                 $scope.isActive = function(key) {
                     return $scope.name == key;
                 };
-            }],
+            }]
         };
         return directiveDefinitionObject;
     }])
@@ -128,7 +131,7 @@ angular.module('aws.parameter_types', [])
             restrict: 'E',
             scope: {
                 name: "=name",
-                parameters: "=parameters",
+                parameters: "=parameters"
             },
             link: function(scope, elem, attr, ctrl) {
                 var SCORE_TYPES = ["GroupMin", "GroupMul", "GroupThreshold", "Sum"];
@@ -176,7 +179,7 @@ angular.module('aws.parameter_types', [])
                 $scope.isActive = function(key) {
                     return $scope.name == key;
                 };
-            }],
+            }]
         };
         return directiveDefinitionObject;
     }]);

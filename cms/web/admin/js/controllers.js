@@ -14,14 +14,29 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-/* Controllers */
+goog.provide('aws.AnnouncementListCtrl');
+goog.provide('aws.ResourceCtrl');
 
-angular.module('aws.controllers', [])
-    .controller('ResourcesCtrl', [function () {
 
-    }])
-    .controller('AnnouncementListCtrl', [function() {
 
-    }]);
+/**
+ * Controller for the announcement list page.
+ * @constructor
+ * @ngInject
+ */
+aws.controllers.AnnouncementListCtrl = function() {
+
+};
+
+
+/**
+ * Controller for the resource page.
+ * @constructor
+ * @ngInject
+ */
+aws.controllers.ResourceCtrl = function() {
+
+};
