@@ -224,8 +224,8 @@ angular.module('aws.task', [])
             fileManager.download(task.name + " (" + statement.language + ").pdf", "application/pdf", statement.digest);
         };
 
-        $scope.delete = function(statement) {
-            store.delete("Statement", statement._ref).then(function() {
+        $scope.remove = function(statement) {
+            store.remove("Statement", statement._ref).then(function() {
                 $scope.load();
             });
         };
@@ -267,8 +267,8 @@ angular.module('aws.task', [])
             fileManager.download(attachment.filename, "application/pdf", attachment.digest);
         };
 
-        $scope.delete = function(attachment) {
-            store.delete("Attachment", attachment._ref).then(function() {
+        $scope.remove = function(attachment) {
+            store.remove("Attachment", attachment._ref).then(function() {
                 $scope.load();
             });
         };

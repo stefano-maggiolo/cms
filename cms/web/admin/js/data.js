@@ -588,12 +588,12 @@ angular.module('aws.data', []).value('dataModel', {
         return deferred_f.promise;
     };
 
-    self.delete = function(cls, ref) {
+    self.remove = function(cls, ref) {
         var deferred_f = $q.defer();
         var deferred = $q.defer();
         self._work_pending = deferred.promise;
 
-        $http.delete('api/' + model[cls].tablename + '/' + ref).then(function(response) {
+        $http['delete']('api/' + model[cls].tablename + '/' + ref).then(function(response) {
 
             angular.forEach(self._action_listeners, function(callback) {
                 // XXX $evalAsync?

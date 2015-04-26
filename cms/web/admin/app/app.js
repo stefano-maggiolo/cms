@@ -23,8 +23,8 @@ goog.provide('aws.module');
 
 goog.require('aws.directives.module');
 goog.require('aws.filters.module');
-goog.require('aws.AnnouncementListCtrl');
-goog.require('aws.ResourceCtrl');
+goog.require('aws.controllers.AnnouncementListCtrl');
+goog.require('aws.controllers.ResourceCtrl');
 goog.require('aws.navigation');
 goog.require('aws.parametertypes');
 goog.require('aws.notifications');
@@ -41,12 +41,12 @@ goog.require('aws.communication');
 goog.require('aws.dataset');
 
 
-//goog.require('goog.string');
-//alert(goog.string.countOf('1', '111'));
+
 // Declare app level module which depends on filters, and services
 aws.module = angular.module(
     'aws',
-    [aws.filters.module.name,
+    ['ngRoute',
+     aws.filters.module.name,
      aws.directives.module.name,
      'aws.navigation',
      'aws.parametertypes',
@@ -72,75 +72,76 @@ aws.module.config(
 //         $locationProvider.html5Mode(false);
 //         $locationProvider.hashPrefix('!');
 
-         $routeProvider.when('/overview', {
-             templateUrl: 'views/overview.html',
-             controller: 'OverviewCtrl'
-         });
-         $routeProvider.when('/resources', {
-             templateUrl: 'views/resources.html',
-             controller: aws.ResourcesCtrl
-         });
-         $routeProvider.when('/contests/create', {
-             templateUrl: 'views/contest.html',
-             controller: 'ContestCreateCtrl'
-         });
-         $routeProvider.when('/contests/', {
-             templateUrl: 'views/contest_list.html',
-             controller: 'ContestListCtrl'
-         });
-         $routeProvider.when('/contests/:contestId', {
-             templateUrl: 'views/contest.html',
-             controller: 'ContestCtrl'
-         });
-         $routeProvider.when('/contests/:contestId/ranking', {
-             templateUrl: 'views/ranking.html',
-             controller: 'RankingCtrl'
-         });
-         $routeProvider.when('/contests/:contestId/users', {
-             templateUrl: 'views/user_list.html',
-             controller: 'UserListCtrl'
-         });
-         $routeProvider.when('/contests/:contestId/tasks', {
-             templateUrl: 'views/task_list.html',
-             controller: 'TaskListCtrl'
-         });
-         $routeProvider.when('/contests/:contestId/announcements', {
-             templateUrl: 'views/announcement_list.html',
-             controller: aws.AnnouncementListCtrl
-         });
-         $routeProvider.when('/contests/:contestId/messages', {
-             templateUrl: 'views/message_list.html',
-             controller: 'MessageListCtrl'
-         });
-         $routeProvider.when('/contests/:contestId/questions', {
-             templateUrl: 'views/question_list.html',
-             controller: 'QuestionListCtrl'
-         });
-         $routeProvider.when('/users/:userId', {
-             templateUrl: 'views/user.html',
-             controller: 'UserCtrl'
-         });
-         $routeProvider.when('/tasks/:taskId', {
-             templateUrl: 'views/task.html',
-             controller: 'TaskCtrl'
-         });
-         $routeProvider.when('/tasks/:taskId/datasets', {
-             templateUrl: 'views/dataset_list.html',
-             controller: 'DatasetListCtrl'
-         });
-         $routeProvider.when('/datasets/:datasetId', {
-             templateUrl: 'views/dataset.html',
-             controller: 'DatasetCtrl'
-         });
-         $routeProvider.when('/datasets/:datasetId/activate', {
-             templateUrl: 'views/dataset_activate.html',
-             controller: 'DatasetActivateCtrl'
-         });
-         $routeProvider.when('/submissions/', {
-             templateUrl: 'views/submission_list.html',
-             controller: 'SubmissionListCtrl'
-         });
-         $routeProvider.otherwise({
-             redirectTo: '/overview'
-         });
+         $routeProvider.
+             when('/overview', {
+                 templateUrl: 'views/overview.html',
+                 controller: aws.OverviewCtrl
+             }).
+             when('/resources', {
+                 templateUrl: 'views/resources.html',
+                 controller: aws.ResourcesCtrl
+             }).
+             when('/contests/create', {
+                 templateUrl: 'views/contest.html',
+                 controller: 'ContestCreateCtrl'
+             }).
+             when('/contests/', {
+                 templateUrl: 'views/contest_list.html',
+                 controller: 'ContestListCtrl'
+             }).
+             when('/contests/:contestId', {
+                 templateUrl: 'views/contest.html',
+                 controller: 'ContestCtrl'
+             }).
+             when('/contests/:contestId/ranking', {
+                 templateUrl: 'views/ranking.html',
+                 controller: 'RankingCtrl'
+             }).
+             when('/contests/:contestId/users', {
+                 templateUrl: 'views/user_list.html',
+                 controller: 'UserListCtrl'
+             }).
+             when('/contests/:contestId/tasks', {
+                 templateUrl: 'views/task_list.html',
+                 controller: 'TaskListCtrl'
+             }).
+             when('/contests/:contestId/announcements', {
+                 templateUrl: 'views/announcement_list.html',
+                 controller: aws.AnnouncementListCtrl
+             }).
+             when('/contests/:contestId/messages', {
+                 templateUrl: 'views/message_list.html',
+                 controller: 'MessageListCtrl'
+             }).
+             when('/contests/:contestId/questions', {
+                 templateUrl: 'views/question_list.html',
+                 controller: 'QuestionListCtrl'
+             }).
+             when('/users/:userId', {
+                 templateUrl: 'views/user.html',
+                 controller: 'UserCtrl'
+             }).
+             when('/tasks/:taskId', {
+                 templateUrl: 'views/task.html',
+                 controller: 'TaskCtrl'
+             }).
+             when('/tasks/:taskId/datasets', {
+                 templateUrl: 'views/dataset_list.html',
+                 controller: 'DatasetListCtrl'
+             }).
+             when('/datasets/:datasetId', {
+                 templateUrl: 'views/dataset.html',
+                 controller: 'DatasetCtrl'
+             }).
+             when('/datasets/:datasetId/activate', {
+                 templateUrl: 'views/dataset_activate.html',
+                 controller: 'DatasetActivateCtrl'
+             }).
+             when('/submissions/', {
+                 templateUrl: 'views/submission_list.html',
+                 controller: 'SubmissionListCtrl'
+             }).
+             otherwise({
+                 redirectTo: '/overview'
+             });
      }]);

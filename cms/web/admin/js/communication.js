@@ -32,7 +32,7 @@ angular.module('aws.communication', [])
             controller: ['$scope', '$element', '$attrs', '$transclude', function($scope, $element, $attrs, $transclude) {
 
                 $scope.remove = function() {
-                    store.delete("Announcement", $scope.announcement._ref).then(function() {
+                    store.remove("Announcement", $scope.announcement._ref).then(function() {
                         // FIXME Ugly?
                         $scope.$parent.load();
                     });
@@ -112,7 +112,7 @@ angular.module('aws.communication', [])
             controller: ['$scope', '$element', '$attrs', '$transclude', function($scope, $element, $attrs, $transclude) {
 
                 $scope.remove = function() {
-                    store.delete("Message", $scope.message._ref).then(function() {
+                    store.remove("Message", $scope.message._ref).then(function() {
                         // FIXME Ugly?
                         $scope.$parent.load();
                     });

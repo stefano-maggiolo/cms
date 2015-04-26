@@ -70,6 +70,7 @@ def do_setup():
         ],
         "cms.service": [
             os.path.join("templates", "printing", "*.*"),
+        ],
         "cms.web": [
             os.path.join("admin", "*.*"),
             os.path.join("admin", "css", "*.*"),

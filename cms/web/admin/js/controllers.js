@@ -17,8 +17,8 @@
 
 'use strict';
 
-goog.provide('aws.AnnouncementListCtrl');
-goog.provide('aws.ResourceCtrl');
+goog.provide('aws.controllers.AnnouncementListCtrl');
+goog.provide('aws.controllers.ResourceCtrl');
 
 
 

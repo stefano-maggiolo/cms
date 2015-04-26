@@ -21,48 +21,53 @@ goog.provide('aws.overview');
 
 
 
-angular.module('aws.overview', [])
-    .controller('OverviewCtrl', ['$scope', function ($scope) {
+aws.overview = angular.module('aws.overview', []);
 
-    }]).
-    directive('rpcPoll', ['$timeout', 'rpcRequest', function ($timeout, rpc) {
-        var directiveDefinitionObject = {
-            restrict: 'A',
-            scope: {
-                timeout: "@rpcPoll",
-                service: "@rpcService",
-                shard: "@rpcShard",
-                method: "@rpcMethod",
-                args: "@rpcArgs",
-                result: "=data",
-                error: "=error"
-            },
-            link: function($scope) {
-                var last_check = null;
-                var timeout_id = null;
+aws.overview.OverviewCtrl = function() {};
 
-                // An RPC will be fired after the previous one returned, but no sooner than `timeout' seconds after the previous one started.
-                // That is, RPC will start at least `timeout' second apart, and there'll never be two of them running at the same time.
-                var poll = function() {
-                    last_check = Date.now();
+aws.overview.rpcPoll = aws.overview.directive(
+    ['$timeout', 'rpcRequest',
+     function ($timeout, rpc) {
+         var directiveDefinitionObject = {
+             restrict: 'A',
+             scope: {
+                 timeout: "@rpcPoll",
+                 service: "@rpcService",
+                 shard: "@rpcShard",
+                 method: "@rpcMethod",
+                 args: "@rpcArgs",
+                 result: "=data",
+                 error: "=error"
+             },
+             link: function($scope) {
+                 var last_check = null;
+                 var timeout_id = null;
 
-                    rpc.request($scope.service, $scope.shard, $scope.method, angular.fromJson($scope.args)).then(function(data) {
-                        $scope.result = data;
-                        timeout_id = $timeout(poll, Math.max(0, last_check + parseInt($scope.timeout) * 1000 - Date.now()));
-                    }, function(reason) {
-                        $scope.error = reason;
-                    });
-                };
+                 // An RPC will be fired after the previous one returned, but no sooner than `timeout' seconds after the previous one started.
+                 // That is, RPC will start at least `timeout' second apart, and there'll never be two of them running at the same time.
+                 var poll = function() {
+                     last_check = Date.now();
 
-                $scope.$evalAsync(poll);
-                $scope.$on("$destroy", function() {
-                    $timeout.cancel(timeout_id);
-                });
-            }
-        };
-        return directiveDefinitionObject;
-    }]).
-    directive('submissionStatus', [function () {
+                     rpc.request($scope.service, $scope.shard, $scope.method, angular.fromJson($scope.args)).then(function(data) {
+                         $scope.result = data;
+                         timeout_id = $timeout(poll, Math.max(0, last_check + parseInt($scope.timeout) * 1000 - Date.now()));
+                     }, function(reason) {
+                         $scope.error = reason;
+                     });
+                 };
+
+                 $scope.$evalAsync(poll);
+                 $scope.$on("$destroy", function() {
+                     $timeout.cancel(timeout_id);
+                 });
+             }
+         };
+         return directiveDefinitionObject;
+     }]);
+
+
+aws.overview.submissionStatus = aws.overview.directive(
+    [function () {
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
@@ -90,8 +95,11 @@ angular.module('aws.overview', [])
             }
         };
         return directiveDefinitionObject;
-    }]).
-    directive('queueStatus', [function () {
+    }]);
+
+
+aws.overview.queueStatus = aws.overview.directive(
+    [function () {
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
@@ -110,8 +118,11 @@ angular.module('aws.overview', [])
             }
         };
         return directiveDefinitionObject;
-    }]).
-    directive('workersStatus', [function () {
+    }]);
+
+
+aws.overview.workersStatus = aws.overview.directive(
+    [function () {
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
@@ -130,8 +141,11 @@ angular.module('aws.overview', [])
             }
         };
         return directiveDefinitionObject;
-    }]).
-    directive('recentLogs', [function () {
+    }]);
+
+
+aws.overview.recentLogs = aws.overview.directive(
+    [function () {
         var directiveDefinitionObject = {
             restrict: 'E',
             scope: {
@@ -150,8 +164,11 @@ angular.module('aws.overview', [])
             }
         };
         return directiveDefinitionObject;
-    }]).
-    filter('jobPriority', [function() {
+    }]);
+
+
+aws.overview.jobPriority = aws.overview.filter(
+    [function() {
         return function(value) {
             switch (value) {
                 case 0:
@@ -168,8 +185,11 @@ angular.module('aws.overview', [])
                     return value;
             }
         };
-    }]).
-    filter('jobDescription', [function() {
+    }]);
+
+
+aws.overview.jobDescription = aws.overview.filter(
+    [function() {
         return function(value) {
             if (!(angular.isArray(value) && value.length == 3 && angular.isString(value[0]) && angular.isNumber(value[1]) && angular.isNumber(value[2]))) {
                 return value;
@@ -196,8 +216,11 @@ angular.module('aws.overview', [])
 
             return job_type + ' the result of ' + object_type + ' ' + value[1] + ' on dataset ' + value[2];
         };
-    }]).
-    filter('logSeverity', [function() {
+    }]);
+
+
+aws.overview.logSeverity = aws.overview.filter(
+    [function() {
         return function(value) {
             switch (value) {
                 case "CRITICAL":

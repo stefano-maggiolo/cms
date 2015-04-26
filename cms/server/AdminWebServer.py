@@ -509,7 +509,7 @@ class AdminWebServer(WebService):
         })
 
         self.wsgi_app = SharedDataMiddleware(self.wsgi_app,
-                                             {'/': ('cms.web', 'admin')})
+                                             {'/': ('cms.web', 'aws')})
 
         gevent.spawn(self.watcher.run)
 

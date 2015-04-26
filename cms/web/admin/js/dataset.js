@@ -186,8 +186,8 @@ angular.module('aws.dataset', [])
 
         $scope.dataset = dataset;
 
-        $scope.delete = function() {
-            store.delete("Dataset", dataset._ref).then(function() {
+        $scope['delete'] = function() {
+            store.remove("Dataset", dataset._ref).then(function() {
                 dialog.close("done");
             });
         };
