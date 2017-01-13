@@ -742,7 +742,7 @@ class EvaluationService(TriggeredService):
                 language=submission.language,
                 task=submission.task_id,
                 participant=submission.participation_id,
-                value=make_datetime() - make_datetime(submission.timestamp)
+                value=(make_datetime() - submission.timestamp).total_seconds()
             )
             logger.info("Submission %d(%d) was compiled successfully.",
                         submission_result.submission_id,
@@ -802,7 +802,7 @@ class EvaluationService(TriggeredService):
                 language=submission.language,
                 task=submission.task_id,
                 participant=submission.participation_id,
-                value=make_datetime() - make_datetime(submission.timestamp)
+                value=(make_datetime() - submission.timestamp).total_seconds()
             )
             logger.info("Submission %d(%d) was evaluated successfully.",
                         submission_result.submission_id,

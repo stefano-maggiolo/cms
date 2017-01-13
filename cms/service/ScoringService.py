@@ -121,7 +121,7 @@ class ScoringExecutor(Executor):
                 language=submission.language,
                 task=submission.task_id,
                 participant=submission.participation_id,
-                value=make_datetime() - make_datetime(submission.timestamp)
+                value=(make_datetime() - submission.timestamp).total_seconds()
             )
 
             # If dataset is the active one, update RWS.
