@@ -6,6 +6,7 @@
 # Copyright © 2010-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -135,7 +136,7 @@ class Service(object):
         if config.file_log_debug:
             file_log_level = logging.DEBUG
         else:
-            file_log_level = logging.INFO
+            file_log_level = logging.getLevelName("METRIC")
         file_handler.setLevel(file_log_level)
         file_handler.setFormatter(DetailedFormatter(False))
         file_handler.addFilter(filter_)
@@ -153,7 +154,7 @@ class Service(object):
         if self.name != "LogService":
             log_service = self.connect_to(ServiceCoord("LogService", 0))
             remote_handler = LogServiceHandler(log_service)
-            remote_handler.setLevel(logging.INFO)
+            remote_handler.setLevel(logging.getLevelName("METRIC"))
             remote_handler.addFilter(filter_)
             root_logger.addHandler(remote_handler)
 

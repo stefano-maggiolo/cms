@@ -7,6 +7,7 @@
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013-2015 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2016 Luca Versari <veluca93@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -183,6 +184,8 @@ class Worker(Service):
         if self._number_execution > 0:
             avg_busy_time = self._total_busy_time / self._number_execution
         self._number_execution += 1
+        logger.metric("busy_time", value=busy_time)
+        logger.metric("free_time", value=free_time)
         logger.info("Executed in %.3lf after free for %.3lf; "
                     "busyness is %.1lf%%; avg free time is %.3lf "
                     "avg busy time is %.3lf ",

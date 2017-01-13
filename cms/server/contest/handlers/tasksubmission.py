@@ -11,6 +11,7 @@
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2015 William Di Luigi <williamdiluigi@gmail.com>
 # Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -342,6 +343,14 @@ class SubmitHandler(BaseHandler):
             self.sql_session.add(File(filename, digest, submission=submission))
         self.sql_session.add(submission)
         self.sql_session.commit()
+        logger.metric(
+            "submission_added",
+            submission_id=submission.id,
+            language=submission.language,
+            task_id=task.id,
+            participant_id=participation.id,
+            value=1
+        )
         self.application.service.evaluation_service.new_submission(
             submission_id=submission.id)
         self.application.service.add_notification(

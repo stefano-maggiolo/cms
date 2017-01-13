@@ -9,6 +9,7 @@
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2016 Luca Versari <veluca93@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -55,6 +56,7 @@ from cms.db.filecacher import FileCacher
 from cms.service import get_datasets_to_judge, \
     get_submissions, get_submission_results
 from cms.grading.Job import JobGroup
+from cmscommon.datetime import make_datetime
 
 from .esoperations import ESOperation, get_relevant_operations, \
     get_submissions_operations, get_user_tests_operations, \
@@ -65,6 +67,13 @@ from .workerpool import WorkerPool
 
 
 logger = logging.getLogger(__name__)
+
+
+def report_queue_length(func):
+    def execute_and_report(self, *args, **kwargs):
+        func(self, *args, **kwargs)
+        logger.metric("queue_length", self._operation_queue.length())
+    return execute_and_report
 
 
 class EvaluationExecutor(Executor):
@@ -159,6 +168,11 @@ class EvaluationExecutor(Executor):
                     self._currently_executing = []
                     break
 
+    @report_queue_length
+    def enqueue(self, *args, **kwargs):
+        super(EvaluationExecutor, self).enqueue(*args, **kwargs)
+
+    @report_queue_length
     def dequeue(self, operation):
         """Remove an item from the queue.
 
@@ -721,6 +735,15 @@ class EvaluationService(TriggeredService):
 
         # If compilation was ok, we emit a satisfied log message.
         if submission_result.compilation_succeeded():
+            logger.metric(
+                "submission_compilation_time",
+                submission_id=submission.id,
+                dataset_id=submission_result.dataset_id,
+                language=submission.language,
+                task=submission.task_id,
+                participant=submission.participation_id,
+                value=make_datetime() - make_datetime(submission.timestamp)
+            )
             logger.info("Submission %d(%d) was compiled successfully.",
                         submission_result.submission_id,
                         submission_result.dataset_id)
@@ -772,6 +795,15 @@ class EvaluationService(TriggeredService):
         # otherwise the ScoringService wouldn't receive the updated
         # submission.
         if submission_result.evaluated():
+            logger.metric(
+                "submission_total_evaluation_time",
+                submission_id=submission.id,
+                dataset_id=submission_result.dataset_id,
+                language=submission.language,
+                task=submission.task_id,
+                participant=submission.participation_id,
+                value=make_datetime() - make_datetime(submission.timestamp)
+            )
             logger.info("Submission %d(%d) was evaluated successfully.",
                         submission_result.submission_id,
                         submission_result.dataset_id)
