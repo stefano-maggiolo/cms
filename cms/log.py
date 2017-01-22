@@ -118,13 +118,17 @@ class MetricHandler(logging.Handler):
                 str(value),
                 str(timestamp)
             )
-            logging.getLogger().warning(metric_data_string)
-            logging.getLogger().warning(requests.post(
+            normal_logger = logging.getLogger()
+            normal_logger.warning(metric_data_string)
+            response = requests.post(
                 url=self.metric_server,
                 data=metric_data_string,
-            ))
+            )
+            normal_logger.warning(response)
         except KeyError:
             pass
+        except:
+            self.handleError(record)
 
 
 class LogServiceHandler(logging.Handler):
