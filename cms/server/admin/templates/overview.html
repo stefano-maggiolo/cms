@@ -64,12 +64,12 @@ function update_queue_status(response)
 function enable_worker(shard) {
     if (confirm("Do you really want to enable worker " + shard + "?")) {
         cmsrpc_request("{{ url_root }}",
-                       "EvaluationService", 0,
+                       "QueueService", 0,
                        "enable_worker",
                        {"shard":shard},
                        function() {
                           cmsrpc_request("{{ url_root }}",
-                                         "EvaluationService", 0,
+                                         "QueueService", 0,
                                          "workers_status",
                                          {},
                                          update_workers_status);
@@ -80,12 +80,12 @@ function enable_worker(shard) {
 function disable_worker(shard) {
     if (confirm("Do you really want to disable worker " + shard + "?")) {
         cmsrpc_request("{{ url_root }}",
-                       "EvaluationService", 0,
+                       "QueueService", 0,
                        "disable_worker",
                        {"shard":shard},
                        function() {
                           cmsrpc_request("{{ url_root }}",
-                                         "EvaluationService", 0,
+                                         "QueueService", 0,
                                          "workers_status",
                                          {},
                                          update_workers_status);
@@ -210,13 +210,13 @@ function update_statuses()
             || update_statuses.queue_request.state() != "pending") {
         update_statuses.queue_request =
             cmsrpc_request("{{ url_root }}",
-                           "EvaluationService", 0,
+                           "QueueService", 0,
                            "queue_status",
                            {},
                            update_queue_status);
     }
     cmsrpc_request("{{ url_root }}",
-                   "EvaluationService", 0,
+                   "QueueService", 0,
                    "workers_status",
                    {},
                    update_workers_status);
