@@ -43,7 +43,7 @@ import tornado.web
 
 from sqlalchemy import func
 
-from cms import config
+from cms import config, random_service
 from cms.db import Task, UserTest, UserTestFile, UserTestManager
 from cms.grading.languagemanager import get_language
 from cms.grading.tasktypes import get_task_type
@@ -416,8 +416,8 @@ class UserTestHandler(ContestHandler):
 
         self.sql_session.add(user_test)
         self.sql_session.commit()
-        self.application.service.evaluation_service.new_user_test(
-            user_test_id=user_test.id)
+        random_service(self.application.service.evaluation_services)\
+            .new_user_test(user_test_id=user_test.id)
         self.application.service.add_notification(
             participation.user.username,
             self.timestamp,

@@ -45,7 +45,8 @@ logger = logging.getLogger(__name__)
 
 
 class TestRunner(object):
-    def __init__(self, test_list, contest_id=None, workers=1):
+    def __init__(self, test_list, contest_id=None,
+                 workers=1, evaluations=4):
         self.start_time = datetime.datetime.now()
 
         self.ps = ProgramStarter()
@@ -58,6 +59,7 @@ class TestRunner(object):
 
         self.num_users = 0
         self.workers = workers
+        self.evaluations = evaluations
 
         # Load config from cms.conf.
         TestRunner.load_cms_conf()
@@ -287,7 +289,9 @@ class TestRunner(object):
         # tasks and sending them to RWS.
         for test in self.test_list:
             self.create_or_get_task(test.task_module)
-        self.ps.start("EvaluationService", contest=self.contest_id)
+        self.ps.start("QueueService", contest=self.contest_id)
+        for shard in range(self.evaluations):
+            self.ps.start("EvaluationService", shard, contest=self.contest_id)
         self.ps.start("ContestWebServer", contest=self.contest_id)
         self.ps.start("ProxyService", contest=self.contest_id)
         for shard in xrange(self.workers):

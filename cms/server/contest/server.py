@@ -46,7 +46,7 @@ import base64
 import logging
 import pkg_resources
 
-from cms import ConfigError, ServiceCoord, config
+from cms import ConfigError, ServiceCoord, config, get_service_shards
 from cms.io import WebService
 from cms.db.filecacher import FileCacher
 from cms.locale import get_translations, wrap_translations_for_tornado
@@ -115,8 +115,9 @@ class ContestWebServer(WebService):
                       for lang_code, trans in get_translations().iteritems()}
 
         self.file_cacher = FileCacher(self)
-        self.evaluation_service = self.connect_to(
-            ServiceCoord("EvaluationService", 0))
+        self.evaluation_services = [
+            self.connect_to(ServiceCoord("EvaluationService", i))
+            for i in range(get_service_shards("EvaluationService"))]
         self.scoring_service = self.connect_to(
             ServiceCoord("ScoringService", 0))
 

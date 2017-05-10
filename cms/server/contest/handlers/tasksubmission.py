@@ -45,7 +45,7 @@ import tornado.web
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
-from cms import config
+from cms import config, random_service
 from cms.db import File, Submission, SubmissionResult, Task, Token
 from cms.grading.languagemanager import get_language
 from cms.grading.scoretypes import get_score_type
@@ -338,10 +338,17 @@ class SubmitHandler(ContestHandler):
             self.sql_session.add(File(filename, digest, submission=submission))
         self.sql_session.add(submission)
         self.sql_session.commit()
-        self.application.service.evaluation_service.new_submission(
-            submission_id=submission.id)
+
+        # Store some data out of the session so we can close it before issuing
+        # RPCs.
+        username = participation.user.username
+        submission_id = submission.id
+        self.sql_session.close()
+
+        random_service(self.application.service.evaluation_services)\
+            .new_submission(submission_id=submission_id)
         self.application.service.add_notification(
-            participation.user.username,
+            username,
             self.timestamp,
             self._("Submission received"),
             self._("Your submission has been received "
@@ -352,7 +359,7 @@ class SubmitHandler(ContestHandler):
         # (nor it discloses information to the user), but it is useful
         # for automatic testing to obtain the submission id).
         self.redirect(self.contest_url(
-            *self.fallback_page, submission_id=encrypt_number(submission.id)))
+            *self.fallback_page, submission_id=encrypt_number(submission_id)))
 
 
 class TaskSubmissionsHandler(ContestHandler):
