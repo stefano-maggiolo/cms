@@ -47,8 +47,9 @@ from cms import ServiceCoord, get_service_shards, random_service
 from cms.io import Executor, TriggeredService, rpc_method
 from cms.db import SessionGen
 from cms.grading.Job import JobGroup
+from cms.service import get_submissions, get_submission_results
 
-from .esoperations import ESOperation, \
+from .esoperations import ESOperation, get_relevant_operations, \
     get_submissions_operations, get_user_tests_operations
 from .workerpool import WorkerPool
 
@@ -490,6 +491,113 @@ class QueueService(TriggeredService):
             for operation, priority, timestamp in new_operations:
                 self.enqueue(
                     ESOperation.from_dict(operation), priority, timestamp)
+
+    @rpc_method
+    @with_post_finish_lock
+    def invalidate_submission(self,
+                              contest_id=None,
+                              submission_id=None,
+                              dataset_id=None,
+                              participation_id=None,
+                              task_id=None,
+                              level="compilation"):
+        """Request to invalidate some computed data.
+
+        Invalidate the compilation and/or evaluation data of the
+        SubmissionResults that:
+        - belong to submission_id or, if None, to any submission of
+          participation_id and/or task_id or, if both None, to any
+          submission of the contest asked for, or, if all three are
+          None, the contest this service is running for (or all contests).
+        - belong to dataset_id or, if None, to any dataset of task_id
+          or, if None, to any dataset of any task of the contest this
+          service is running for.
+
+        The data is cleared, the operations involving the submissions
+        currently enqueued are deleted, and the ones already assigned to
+        the workers are ignored. New appropriate operations are
+        enqueued.
+
+        submission_id (int|None): id of the submission to invalidate,
+            or None.
+        dataset_id (int|None): id of the dataset to invalidate, or
+            None.
+        participation_id (int|None): id of the participation to
+            invalidate, or None.
+        task_id (int|None): id of the task to invalidate, or None.
+        level (string): 'compilation' or 'evaluation'
+
+        """
+        logger.info("Invalidation request received.")
+
+        # Validate arguments
+        # TODO Check that all these objects belong to this contest.
+        if level not in ("compilation", "evaluation"):
+            raise ValueError(
+                "Unexpected invalidation level `%s'." % level)
+
+        if contest_id is None:
+            contest_id = self.contest_id
+
+        with SessionGen() as session:
+            # First we load all involved submissions.
+            submissions = get_submissions(
+                # Give contest_id only if all others are None.
+                contest_id
+                if {participation_id, task_id, submission_id} == {None}
+                else None,
+                participation_id, task_id, submission_id, session)
+
+            # Then we get all relevant operations, and we remove them
+            # both from the queue and from the pool (i.e., we ignore
+            # the workers involved in those operations).
+            operations = get_relevant_operations(
+                level, submissions, dataset_id)
+            for operation in operations:
+                try:
+                    self.dequeue(operation)
+                except KeyError:
+                    pass  # Ok, the operation wasn't in the queue.
+                try:
+                    self.get_executor().pool.ignore_operation(operation)
+                except LookupError:
+                    pass  # Ok, the operation wasn't in the pool.
+
+            # Then we find all existing results in the database, and
+            # we remove them.
+            submission_results = get_submission_results(
+                # Give contest_id only if all others are None.
+                contest_id
+                if {participation_id,
+                    task_id,
+                    submission_id,
+                    dataset_id} == {None}
+                else None,
+                participation_id, task_id, submission_id, dataset_id, session)
+            logger.info("Submission results to invalidate %s for: %d.",
+                        level, len(submission_results))
+            for submission_result in submission_results:
+                # We invalidate the appropriate data and queue the
+                # operations to recompute those data.
+                if level == "compilation":
+                    submission_result.invalidate_compilation()
+                elif level == "evaluation":
+                    submission_result.invalidate_evaluation()
+
+            # There is a small chance that an invalidate won't
+            # succeed: if a result is in the pending structure, it
+            # might be written after the commit here.
+            session.commit()
+
+            # Collecting the ids so that we can close the session
+            # before the rpcs.
+            submission_ids = [submission.id for submission in submissions]
+
+        # Finally, we re-enqueue the operations for the submissions.
+        for id in submission_ids:
+            random_service(self.evaluation_services).new_submission(id)
+
+        logger.info("Invalidate successfully completed.")
 
     @rpc_method
     def disable_worker(self, shard):
