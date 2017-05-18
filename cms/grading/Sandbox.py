@@ -852,6 +852,8 @@ class IsolateSandbox(SandboxBase):
                 "Failed to initialize sandbox with command: %s "
                 "(error %d)" % (pretty_print_cmdline(box_cmd), ret))
 
+        self._has_cleanedup = False
+
     def add_mapped_directories(self, dirs):
         """Add dirs to the external dirs visible to the sandboxed command.
 
@@ -1320,6 +1322,19 @@ class IsolateSandbox(SandboxBase):
             raise SandboxInterfaceException("Sandbox exit status (%d) unknown"
                                             % exitcode)
 
+    def cleanup(self):
+        """Cleanup the sandbox.
+
+        """
+        logger.debug("Cleaning up sandbox in %s.", self.path)
+
+        # Tell isolate to cleanup the sandbox.
+        box_cmd = [self.box_exec] + (["--cg"] if self.cgroup else []) \
+            + ["--box-id=%d" % self.box_id]
+        subprocess.call(box_cmd + ["--cleanup"])
+
+        self._has_cleanedup = True
+
     def delete(self):
         """Delete the directory where the sandbox operated.
 
@@ -1327,9 +1342,8 @@ class IsolateSandbox(SandboxBase):
         logger.debug("Deleting sandbox in %s.", self.path)
 
         # Tell isolate to cleanup the sandbox.
-        box_cmd = [self.box_exec] + (["--cg"] if self.cgroup else []) \
-            + ["--box-id=%d" % self.box_id]
-        subprocess.call(box_cmd + ["--cleanup"])
+        if not self._has_cleanedup:
+            self.cleanup()
 
         # Delete the working directory.
         rmtree(self.outer_temp_dir)
