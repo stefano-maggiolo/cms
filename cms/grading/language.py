@@ -126,6 +126,16 @@ class Language(object):
         """
         raise NotImplementedError("Please subclass this class.")
 
+    def get_compilation_no_link_command(self, source_filenames):
+        """Return the commands for compilation without linking.
+
+        source_filenames ([string]): a list of the string that are the
+            filenames of the source files to compile.
+        return ([[string]]): a list of commands, each a list of
+            strings to be passed to subprocess.
+        """
+        raise NotImplementedError("Please subclass this class.")
+
     def get_evaluation_commands(
             self, executable_filename, main=None, args=None):
         """Return the evaluation commands.

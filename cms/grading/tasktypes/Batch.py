@@ -36,6 +36,8 @@ from cms.grading.ParameterTypes import ParameterTypeCollection, \
     ParameterTypeChoice, ParameterTypeString
 from cms.grading.TaskType import TaskType, \
     create_sandbox, delete_sandbox
+from cms.grading.languages.c11_gcc import C11Gcc
+from cms.grading.languages.cpp11_gpp import Cpp11Gpp
 from cms.db import Executable
 
 
@@ -168,10 +170,20 @@ class Batch(TaskType):
         # If a grader is specified, we add to the command line (and to
         # the files to get) the corresponding manager. The grader must
         # be the first file in source_filenames.
+        compile_command = []
         if self._uses_grader():
-            source_filenames.insert(0, "grader%s" % source_ext)
             files_to_get["grader%s" % source_ext] = \
                 job.managers["grader%s" % source_ext].digest
+            # For solutions using C or C++, we first compile the grader source
+            # file and then delete it from sandbox, to prevent the user's solution
+            # files from including it.
+            if isinstance(language, C11Gcc) or isinstance(language, Cpp11Gpp):
+                source_filenames.insert(0, "grader.o")
+                compile_command = language.get_compilation_no_link_command(
+                    ["grader%s" % source_ext])
+                compile_command += [["/bin/rm", "grader%s" % source_ext]]
+            else:
+                source_filenames.insert(0, "grader%s" % source_ext)
 
         # Also copy all managers that might be useful during compilation.
         for filename in job.managers.iterkeys():
@@ -190,7 +202,7 @@ class Batch(TaskType):
 
         # Prepare the compilation command
         executable_filename = format_filename.replace(".%l", "")
-        commands = language.get_compilation_commands(
+        commands = compile_command + language.get_compilation_commands(
             source_filenames, executable_filename)
 
         # Run the compilation
