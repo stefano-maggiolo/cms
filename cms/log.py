@@ -106,6 +106,11 @@ class MetricHandler(logging.Handler):
             metric_data = json.loads(record.getMessage())
             metric_name = metric_data.pop("metric_name")
             value = metric_data.pop("value")
+            additional_tags = ["service_name", "service_shard", "funcName"]
+            for tag in additional_tags:
+                value = getattr(record, tag, None)
+                if value is not None and tag not in metric_data:
+                    metric_data[tag] = value
             tags = ["%s=%s" % (str(a), str(b))
                     for a, b in metric_data.iteritems()]
             metric_id = ",".join([metric_name] + tags)

@@ -352,6 +352,15 @@ class SubmitHandler(ContestHandler):
                    "and is currently being evaluated."),
             NOTIFICATION_SUCCESS)
 
+        logger.metric(
+            "submission_added",
+            submission_id=submission.id,
+            language=submission.language,
+            task_id=task.id,
+            participant_id=participation.id,
+            value=1
+        )
+
         # The argument (encripted submission id) is not used by CWS
         # (nor it discloses information to the user), but it is useful
         # for automatic testing to obtain the submission id).

@@ -49,7 +49,7 @@ from gevent.backdoor import BackdoorServer
 from cms import ConfigError, config, mkdir, ServiceCoord, Address, \
     get_service_address
 from cms.log import root_logger, shell_handler, ServiceFilter, \
-    DetailedFormatter, LogServiceHandler, FileHandler
+    DetailedFormatter, LogServiceHandler, FileHandler, MetricHandler
 from cmscommon.datetime import monotonic_time
 
 from .rpc import rpc_method, RemoteServiceServer, RemoteServiceClient, \
@@ -135,12 +135,20 @@ class Service(object):
                                    mode='w', encoding='utf-8')
         if config.file_log_debug:
             file_log_level = logging.DEBUG
-        else:
+        elif config.monitor_enabled:
             file_log_level = logging.getLevelName("METRIC")
+        else:
+            file_log_level = logging.INFO
         file_handler.setLevel(file_log_level)
         file_handler.setFormatter(DetailedFormatter(False))
         file_handler.addFilter(filter_)
         root_logger.addHandler(file_handler)
+
+        if config.monitor_enabled:
+            metric_handler = MetricHandler(config.metric_server)
+            metric_handler.setLevel(logging.getLevelName("METRIC"))
+            metric_handler.addFilter(filter_)
+            root_logger.addHandler(metric_handler)
 
         # Provide a symlink to the latest log file.
         try:
@@ -154,7 +162,7 @@ class Service(object):
         if self.name != "LogService":
             log_service = self.connect_to(ServiceCoord("LogService", 0))
             remote_handler = LogServiceHandler(log_service)
-            remote_handler.setLevel(logging.getLevelName("METRIC"))
+            remote_handler.setLevel(logging.INFO)
             remote_handler.addFilter(filter_)
             root_logger.addHandler(remote_handler)
 
