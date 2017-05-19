@@ -8,6 +8,7 @@
 # Copyright © 2012-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
+# Copyright © 2016 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -37,9 +38,8 @@ from sqlalchemy.types import Integer, Unicode, DateTime, Interval, Enum, \
     Boolean
 from sqlalchemy.orm import relationship, backref
 
-from . import Base, RepeatedUnicode
+from . import Base, RepeatedUnicode, CodenameConstraint
 
-from cms import DEFAULT_LANGUAGES
 from cmscommon.datetime import make_datetime
 
 
@@ -51,6 +51,8 @@ class Contest(Base):
     __tablename__ = 'contests'
     __table_args__ = (
         CheckConstraint("start <= stop"),
+        CheckConstraint("stop <= analysis_start"),
+        CheckConstraint("analysis_start <= analysis_stop"),
         CheckConstraint("token_gen_initial <= token_gen_max"),
     )
 
@@ -62,6 +64,7 @@ class Contest(Base):
     # Short name of the contest.
     name = Column(
         Unicode,
+        CodenameConstraint("name"),
         nullable=False,
         unique=True)
     # Description of the contest (human readable).
@@ -76,12 +79,11 @@ class Contest(Base):
         nullable=False,
         default=[])
 
-    # The list of languages shorthand allowed in the contest,
-    # e.g. cpp. The codes must be the same as those in cms.LANGUAGES.
+    # The list of names of languages allowed in the contest.
     languages = Column(
         RepeatedUnicode(),
         nullable=False,
-        default=DEFAULT_LANGUAGES)
+        default=["C11 / gcc", "C++11 / g++", "Pascal / fpc"])
 
     # Whether contestants allowed to download their submissions.
     submissions_download_allowed = Column(
@@ -189,6 +191,20 @@ class Contest(Base):
         nullable=False,
         default=datetime(2000, 1, 1))
     stop = Column(
+        DateTime,
+        nullable=False,
+        default=datetime(2100, 1, 1))
+
+    # Beginning and ending of the contest anaylsis mode.
+    analysis_enabled = Column(
+        Boolean,
+        nullable=False,
+        default=False)
+    analysis_start = Column(
+        DateTime,
+        nullable=False,
+        default=datetime(2100, 1, 1))
+    analysis_stop = Column(
         DateTime,
         nullable=False,
         default=datetime(2100, 1, 1))
@@ -360,17 +376,26 @@ class Contest(Base):
     def phase(self, timestamp):
         """Return: -1 if contest isn't started yet at time timestamp,
                     0 if the contest is active at time timestamp,
-                    1 if the contest has ended.
+                    1 if the contest has ended but analysis mode
+                      hasn't started yet
+                    2 if the contest has ended and analysis mode is active
+                    3 if the contest has ended and analysis mode is disabled or
+                      has ended
 
         timestamp (datetime): the time we are iterested in.
         return (int): contest phase as above.
 
         """
-        if self.start is not None and self.start > timestamp:
+        if timestamp < self.start:
             return -1
-        if self.stop is None or self.stop > timestamp:
+        if timestamp <= self.stop:
             return 0
-        return 1
+        if self.analysis_enabled:
+            if timestamp < self.analysis_start:
+                return 1
+            elif timestamp <= self.analysis_stop:
+                return 2
+        return 3
 
     @staticmethod
     def _tokens_available(token_timestamps, token_mode,
@@ -379,8 +404,8 @@ class Contest(Base):
                           token_gen_interval, token_gen_max, start, timestamp):
         """Do exactly the same computation stated in tokens_available,
         but ensuring only a single set of token_* directive.
-        Basically, tokens_available call this twice for contest-wise
-        and task-wise parameters and then assemble the result.
+        Basically, tokens_available calls this twice for contest-wise
+        and task-wise parameters and then assembles the result.
 
         token_timestamps ([datetime]): list of timestamps of used
             tokens, sorted in chronological order.
@@ -492,7 +517,7 @@ class Contest(Base):
 
         [1] the next time in which a token will be generated (or
             None); from the user perspective, i.e.: if the user will
-            do nothing, [1] is the first time in which his number of
+            do nothing, [1] is the first time in which their number of
             available tokens will be greater than [0];
 
         [2] the time when the min_interval will expire, or None
@@ -545,7 +570,7 @@ class Contest(Base):
             if token.submission.task.name == task.name])
 
         # If the contest is USACO-style (i.e., the time for each user
-        # start when he/she logs in for the first time), then we start
+        # start when they log in for the first time), then we start
         # accumulating tokens from the user starting time; otherwise,
         # from the start of the contest.
         start = self.start

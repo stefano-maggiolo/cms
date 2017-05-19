@@ -26,7 +26,64 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import ipaddress
+
+import psycopg2.extras
+import sqlalchemy
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.types import TypeDecorator, Unicode
+
+
+# Have psycopg2 use the types in ipaddress to represent the CIDR type.
+# A handy function to do that has been added in v2.7, for versions
+# before that we do it ourselves. See:
+# https://github.com/psycopg/psycopg2/commit/643ba70bad0f19a68c06ec95de2691c28e060e48
+
+try:
+    psycopg2.extras.register_ipaddress()
+
+except AttributeError:
+    from psycopg2.extensions import new_type, new_array_type, register_type, \
+        register_adapter, QuotedString
+
+    def cast_interface(s, cur=None):
+        if s is None:
+            return None
+        return ipaddress.ip_interface(unicode(s))
+
+    def cast_ipnetwork(s, cur=None):
+        if s is None:
+            return None
+        return ipaddress.ip_network(unicode(s))
+
+    inet = new_type((869,), b'INET', cast_interface)
+    ainet = new_array_type((1041,), b'INET[]', inet)
+
+    cidr = new_type((650,), b'CIDR', cast_ipnetwork)
+    acidr = new_array_type((651,), b'CIDR[]', cidr)
+
+    for c in [inet, ainet, cidr, acidr]:
+        register_type(c, None)
+
+    def adapt_ipaddress(obj):
+        return QuotedString(str(obj))
+
+    for t in [ipaddress.IPv4Interface, ipaddress.IPv6Interface,
+              ipaddress.IPv4Network, ipaddress.IPv6Network]:
+        register_adapter(t, adapt_ipaddress)
+
+
+# Taken from:
+# http://docs.sqlalchemy.org/en/rel_1_0/dialects/postgresql.html#using-json-jsonb-with-array
+# Some specialized types (like CIDR) have a natural textual
+# representation and PostgreSQL automatically converts them to and from
+# it. However that conversion isn't automatic when these types are
+# wrapped inside an ARRAY (e.g., TEXT[] can't be automatically cast to
+# CIDR[]). This subclass of ARRAY performs such casting explicitly for
+# each entry.
+class CastingArray(ARRAY):
+    def bind_expression(self, bindvalue):
+        return sqlalchemy.cast(bindvalue, self)
 
 
 class RepeatedUnicode(TypeDecorator):

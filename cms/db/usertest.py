@@ -31,9 +31,10 @@ from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, \
     UniqueConstraint
 from sqlalchemy.types import Integer, Float, String, Unicode, DateTime
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from . import Base, Participation, Task, Dataset
-from .smartmappedcollection import smart_mapped_collection, smc_sa10_workaround
+from . import Base, Participation, Task, Dataset, FilenameConstraint, \
+    DigestConstraint
 
 
 class UserTest(Base):
@@ -87,6 +88,7 @@ class UserTest(Base):
     # Input (provided by the user) file's digest for this test.
     input = Column(
         String,
+        DigestConstraint("input"),
         nullable=False)
 
     # Follows the description of the fields automatically added by
@@ -161,19 +163,22 @@ class UserTestFile(Base):
                    onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
         index=True)
-    user_test = smc_sa10_workaround(relationship(
+    user_test = relationship(
         UserTest,
         backref=backref('files',
-                        collection_class=smart_mapped_collection('filename'),
+                        collection_class=
+                            attribute_mapped_collection('filename'),
                         cascade="all, delete-orphan",
-                        passive_deletes=True)))
+                        passive_deletes=True))
 
     # Filename and digest of the submitted file.
     filename = Column(
         String,
+        FilenameConstraint("filename"),
         nullable=False)
     digest = Column(
         String,
+        DigestConstraint("digest"),
         nullable=False)
 
 
@@ -199,19 +204,22 @@ class UserTestManager(Base):
                    onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
         index=True)
-    user_test = smc_sa10_workaround(relationship(
+    user_test = relationship(
         UserTest,
         backref=backref('managers',
-                        collection_class=smart_mapped_collection('filename'),
+                        collection_class=
+                            attribute_mapped_collection('filename'),
                         cascade="all, delete-orphan",
-                        passive_deletes=True)))
+                        passive_deletes=True))
 
     # Filename and digest of the submitted manager.
     filename = Column(
         String,
+        FilenameConstraint("filename"),
         nullable=False)
     digest = Column(
         String,
+        DigestConstraint("digest"),
         nullable=False)
 
 
@@ -263,6 +271,7 @@ class UserTestResult(Base):
     # Output file's digest for this test
     output = Column(
         String,
+        DigestConstraint("output"),
         nullable=True)
 
     # Compilation outcome (can be None = yet to compile, "ok" =
@@ -513,17 +522,20 @@ class UserTestExecutable(Base):
         viewonly=True)
 
     # UserTestResult owning the executable.
-    user_test_result = smc_sa10_workaround(relationship(
+    user_test_result = relationship(
         UserTestResult,
         backref=backref('executables',
-                        collection_class=smart_mapped_collection('filename'),
+                        collection_class=
+                            attribute_mapped_collection('filename'),
                         cascade="all, delete-orphan",
-                        passive_deletes=True)))
+                        passive_deletes=True))
 
     # Filename and digest of the generated executable.
     filename = Column(
         String,
+        FilenameConstraint("filename"),
         nullable=False)
     digest = Column(
         String,
+        DigestConstraint("digest"),
         nullable=False)

@@ -25,9 +25,9 @@
 
 var CMS = CMS || {};
 
-CMS.CWSUtils = function(url_root, timestamp, timezoned_timestamp,
+CMS.CWSUtils = function(contest_root, timestamp, timezoned_timestamp,
                         current_phase_begin, current_phase_end, phase) {
-    this.url_root = url_root;
+    this.contest_root = contest_root;
     this.last_notification = timestamp;
     this.server_timestamp = timestamp;
     this.server_timezoned_timestamp = timezoned_timestamp;
@@ -48,7 +48,7 @@ CMS.CWSUtils = function(url_root, timestamp, timezoned_timestamp,
 CMS.CWSUtils.prototype.update_notifications = function() {
     var self = this;
     $.get(
-        this.url_root + "/notifications",
+        this.contest_root + "/notifications",
         {"last_notification": this.last_notification},
         function(data) {
             var counter = 0;
@@ -104,14 +104,13 @@ CMS.CWSUtils.prototype.display_notification = function(type, timestamp,
 
     // Trigger a desktop notification as well (but only if it's needed)
     if (type !== "notification") {
-        this.desktop_notification(type, timestamp, subject, text, level);
+        this.desktop_notification(type, timestamp, subject, text);
     }
 };
 
 
 CMS.CWSUtils.prototype.desktop_notification = function(type, timestamp,
-                                                       subject, text,
-                                                       level) {
+                                                       subject, text) {
     // Check desktop notifications support
     if (!("Notification" in window)) {
         return;
@@ -124,7 +123,7 @@ CMS.CWSUtils.prototype.desktop_notification = function(type, timestamp,
 
     // Create notification
     if (Notification.permission === "granted") {
-        var notification = new Notification(subject, {
+        new Notification(subject, {
             "body": text,
             "icon": "/favicon.ico"
         });
@@ -209,7 +208,7 @@ CMS.CWSUtils.prototype.update_time = function(usaco_like_contest) {
     case -2:
         // Contest hasn't started yet.
         if (server_time >= this.current_phase_end) {
-            window.location.href = this.url_root + "/";
+            window.location.href = this.contest_root;
         }
         $("#countdown_label").text(
             $("#translation_until_contest_starts").text());
@@ -233,7 +232,7 @@ CMS.CWSUtils.prototype.update_time = function(usaco_like_contest) {
     case 0:
         // Contest is currently running.
         if (server_time >= this.current_phase_end) {
-            window.location.href = this.url_root + "/";
+            window.location.href = this.contest_root;
         }
         $("#countdown_label").text($("#translation_time_left").text());
         $("#countdown").text(
@@ -243,7 +242,7 @@ CMS.CWSUtils.prototype.update_time = function(usaco_like_contest) {
         // User has already finished its time but contest hasn't
         // finished yet.
         if (server_time >= this.current_phase_end) {
-            window.location.href = this.url_root + "/";
+            window.location.href = this.contest_root;
         }
         $("#countdown_label").text(
             $("#translation_until_contest_ends").text());
@@ -251,7 +250,28 @@ CMS.CWSUtils.prototype.update_time = function(usaco_like_contest) {
             this.format_timedelta(this.current_phase_end - server_time));
         break;
     case +2:
-        // Contest has already finished.
+        // Contest has already finished but analysis mode hasn't started yet.
+        if (server_time >= this.current_phase_end) {
+            window.location.href = this.contest_root;
+        }
+        $("#countdown_label").text(
+            $("#translation_until_analysis_starts").text());
+        $("#countdown").text(
+            this.format_timedelta(this.current_phase_end - server_time));
+        break;
+    case +3:
+        // Contest has already finished. Analysis mode is running.
+        if (server_time >= this.current_phase_end) {
+            window.location.href = this.contest_root;
+        }
+        $("#countdown_label").text(
+            $("#translation_until_analysis_ends").text());
+        $("#countdown").text(
+            this.format_timedelta(this.current_phase_end - server_time));
+        break;
+    case +4:
+        // Contest has already finished and analysis mode is either disabled
+        // or finished.
         $("#countdown_box").addClass("hidden");
         break;
     }
@@ -265,10 +285,10 @@ CMS.CWSUtils.prototype.rel_to_abs = function(sRelPath) {
         sDir = (sDir + sPath.substring(nStart, nEnd)).replace(new RegExp("(?:\\\/+[^\\\/]*){0," + ((nUpLn - 1) / 3) + "}$"), "/");
     }
     return sDir + sPath.substr(nStart);
-}
+};
 
 CMS.CWSUtils.prototype.switch_lang = function() {
-    var cookie_path = this.rel_to_abs(this.url_root + "/");
+    var cookie_path = this.rel_to_abs(this.contest_root);
     var lang = $("#lang").val();
     if (lang === "") {
         document.cookie = "language="
@@ -283,3 +303,51 @@ CMS.CWSUtils.prototype.switch_lang = function() {
     }
     location.reload();
 };
+
+CMS.CWSUtils.filter_languages = function(options, inputs) {
+    var exts = [];
+    for (var i = 0; i < inputs.length; i++) {
+        exts.push('.' + inputs[i].value.match(/[^.]*$/)[0]);
+    }
+    // Find all languages that should be enabled.
+    var enabled = {};
+    var anyEnabled = false;
+    for (var lang in LANGUAGES) {
+        for (i = 0; i < exts.length; i++) {
+            if (LANGUAGES[lang][exts[i]]) {
+                enabled[lang] = true;
+                anyEnabled = true;
+                break;
+            }
+        }
+    }
+    // If no language matches the extension, enable all and let the user
+    // select.
+    if (!anyEnabled) {
+        options.removeAttr('disabled');
+        return;
+    }
+
+    // Otherwise, disable all languages that do not match the extension.
+    var isSelectedDisabled = false;
+    options.each(function(i, option) {
+        if (enabled[option.value]) {
+            $(option).removeAttr('disabled');
+        } else {
+            $(option).attr('disabled', 'disabled');
+            if (option.selected) {
+                isSelectedDisabled = true;
+            }
+        }
+    });
+    // Else, if the current selected is disabled, select one that is enabled.
+    if (isSelectedDisabled) {
+        for (i = 0; i < options.length; i++) {
+            if ($(options[i]).attr('disabled') != 'disabled') {
+                options[i].selected = true;
+                break;
+            }
+        }
+    }
+};
+

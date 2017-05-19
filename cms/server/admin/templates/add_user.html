@@ -8,6 +8,7 @@
 <div id="general_info">
   <!-- We use "multipart/form-data" to have Tornado distinguish between missing and empty values. -->
   <form enctype="multipart/form-data" action="{{ url_root }}/users/add" method="POST">
+    {% module xsrf_form_html() %}
     <table>
       <tr>
         <td>
@@ -35,8 +36,13 @@
           <span class="info" title="Contestant password. Caution: stored in plain text."></span>
           Password
         </td>
-        <!-- FIXME: Plain text? -->
-        <td><input type="text" name="password" /></td>
+        <td>
+          <input type="text" name="password" />
+          <select name="method">
+            <option value="plaintext">Plain text</option>
+            <option value="bcrypt" selected>Hashed (bcrypt)</option>
+          </select>
+        </td>
       </tr>
       <tr>
         <td>

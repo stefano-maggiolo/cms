@@ -7,6 +7,8 @@
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2012-2016 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
+# Copyright © 2016 William Di Luigi <williamdiluigi@gmail.com>
+# Copyright © 2016 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -49,7 +51,8 @@ from cmscommon.datetime import make_datetime, utc
 logger = logging.getLogger(__name__)
 
 
-def compute_actual_phase(timestamp, contest_start, contest_stop, per_user_time,
+def compute_actual_phase(timestamp, contest_start, contest_stop,
+                         analysis_start, analysis_stop, per_user_time,
                          starting_time, delay_time, extra_time):
     """Determine the current phase and when the active phase is.
 
@@ -70,7 +73,11 @@ def compute_actual_phase(timestamp, contest_start, contest_stop, per_user_time,
           stopped yet, its per-user time frame already has (again, this
           should normally happen only in USACO-like contests);
     * +2: the user cannot compete because the contest has already
-          stopped.
+          stopped and the analysis mode hasn't started yet.
+    * +3: the user can take part in analysis mode.
+    * +4: the user cannot compete because the contest has already
+          stopped. analysis mode has already finished or has been
+          disabled for this contest.
     A user is said to "compete" if he can read the tasks' statements,
     submit solutions, see their results, etc.
 
@@ -85,7 +92,7 @@ def compute_actual_phase(timestamp, contest_start, contest_stop, per_user_time,
     per_user_time (timedelta|None): the amount of time allocated to
         each user; if it's None the contest is traditional, otherwise
         it's USACO-like.
-    starting_time (datetime|None): when the user started his time
+    starting_time (datetime|None): when the user started their time
         frame.
     delay_time (timedelta): how much the user's start is delayed.
     extra_time (timedelta): how much extra time is given to the user at
@@ -129,6 +136,7 @@ def compute_actual_phase(timestamp, contest_start, contest_stop, per_user_time,
             current_phase_end = None
         else:
             raise RuntimeError("Logic doesn't seem to be working...")
+
     else:
         if per_user_time is None:
             # "Traditional" contest.
@@ -175,9 +183,51 @@ def compute_actual_phase(timestamp, contest_start, contest_stop, per_user_time,
         else:
             raise RuntimeError("Logic doesn't seem to be working...")
 
+    if actual_phase == +2:
+        if analysis_start is not None:
+            assert contest_stop <= analysis_start
+            assert analysis_stop is not None
+            assert analysis_start <= analysis_stop
+            if timestamp < analysis_start:
+                current_phase_end = analysis_start
+            elif analysis_start <= timestamp <= analysis_stop:
+                current_phase_begin = analysis_start
+                # actual_stop might be greater than analysis_start in case
+                # of extra_time or delay_time.
+                if actual_stop is not None:
+                    current_phase_begin = max(analysis_start, actual_stop)
+                current_phase_end = analysis_stop
+                actual_phase = +3
+            elif analysis_stop < timestamp:
+                current_phase_begin = analysis_stop
+                current_phase_end = None
+                actual_phase = +4
+            else:
+                raise RuntimeError("Logic doesn't seem to be working...")
+        else:
+            actual_phase = +4
+
     return (actual_phase,
             current_phase_begin, current_phase_end,
             actual_start, actual_stop)
+
+
+# TODO: multi_contest and actual_phase_required are only relevant for CWS
+
+
+def multi_contest(f):
+    """Return decorator swallowing the contest name if in multi contest mode.
+
+    """
+    @wraps(f)
+    def wrapped_f(self, *args):
+        if self.is_multi_contest():
+            # Swallow the first argument (the contest name).
+            f(self, *(args[1:]))
+        else:
+            # Otherwise, just forward all arguments.
+            f(self, *args)
+    return wrapped_f
 
 
 def actual_phase_required(*actual_phases):
@@ -342,9 +392,9 @@ def get_score_class(score, max_score):
 def N_(*unused_args, **unused_kwargs):
     pass
 
-# This is a string in task_submissions.html and test_interface.html
-# that for some reason doesn't get included in cms.pot.
+# Some strings in templates that for some reason don't get included in cms.pot.
 N_("loading...")
+N_("unknown")
 
 N_("%d second", "%d seconds", 0)
 N_("%d minute", "%d minutes", 0)
@@ -694,13 +744,19 @@ class CommonRequestHandler(RequestHandler):
         return self.application.service
 
     def redirect(self, url):
-        url = get_url_root(self.request.path) + url
+        """This method overrides tornado.web.RequestHandler.redirect()
 
-        # We would prefer to just use this:
-        #   tornado.web.RequestHandler.redirect(self, url)
-        # but unfortunately that assumes it knows the full path to the current
-        # page to generate an absolute URL. This may not be the case if we are
-        # hidden behind a proxy which is remapping part of its URL space to us.
+        We would prefer not to override this, but the parent method assumes it
+        knows the full path to the current page to generate an absolute URL.
+        This may not be the case if we are hidden behind a proxy which is
+        remapping part of its URL space to us.
+
+        url (string): a URL starting with a forward slash, e.g. "/stuff"
+
+        """
+        # We don't use os.path.join here, because we need something like this:
+        # ".." + "/stuff" to become: "../stuff" not: "/stuff"
+        url = get_url_root(self.request.path) + url
 
         self.set_status(302)
         self.set_header("Location", url)

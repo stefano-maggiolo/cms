@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
-# Copyright © 2015-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2015-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2016 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -21,18 +22,17 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import argparse
 import json
 import logging
 import os
 import sys
 
-from argparse import ArgumentParser
-
 import cmstestsuite.tasks.batch_50 as batch_50
 
-from cms import LANG_C
 from cmstestsuite import CONFIG, cws_submit, get_evaluation_result
 from cmstestsuite.Test import Test
+from cmstestsuite.Tests import LANG_C
 
 from testrunner import TestRunner
 
@@ -74,7 +74,8 @@ class TimeTest(object):
 
 
 def main():
-    parser = ArgumentParser(description="Runs the CMS functional test suite.")
+    parser = argparse.ArgumentParser(
+        description="Runs the CMS functional test suite.")
     parser.add_argument(
         "-s", "--submissions", action="store", type=int, default=50,
         help="set the number of submissions to submit (default 50)")
@@ -91,12 +92,10 @@ def main():
 
     test_list = [Test('batch',
                       task=batch_50, filenames=['correct-stdio.%l'],
-                      languages=LANG_C, checks=[])
+                      languages=(LANG_C, ), checks=[])
                  for _ in range(args.submissions)]
 
     runner = TestRunner(test_list, workers=args.workers)
-    runner.startup()
-
     runner.submit_tests()
     runner.log_elapsed_time()
 

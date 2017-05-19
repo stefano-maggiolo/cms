@@ -3,8 +3,9 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2012 Bernard Blackham <bernard@largestprime.net>
-# Copyright © 2013-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2013-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2014 Luca Versari <veluca93@gmail.com>
+# Copyright © 2016 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,13 +24,12 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import argparse
 import io
 import logging
 import os
 import re
 import sys
-
-from argparse import ArgumentParser
 
 from cms import utf8_decoder
 from cmstestsuite import CONFIG, combine_coverage, sh
@@ -70,7 +70,7 @@ def load_test_list_from_file(filename):
 
     tests = []
     for i, line in enumerate(lines):
-        bits = [x.strip() for x in line.split()]
+        bits = [x.strip() for x in line.split(" ", 1)]
         if len(bits) != 2:
             print("ERROR: %s:%d invalid line: %s" % (filename, i + 1, line))
             errors = True
@@ -147,9 +147,10 @@ def write_test_case_list(test_list, filename):
 
 
 def main():
-    parser = ArgumentParser(description="Runs the CMS functional test suite.")
+    parser = argparse.ArgumentParser(
+        description="Runs the CMS functional test suite.")
     parser.add_argument(
-        "regex", action="store", type=utf8_decoder, nargs='*', metavar="regex",
+        "regex", action="store", type=utf8_decoder, nargs='*',
         help="a regex to match to run a subset of tests")
     parser.add_argument(
         "-l", "--languages", action="store", type=utf8_decoder, default="",
@@ -210,11 +211,10 @@ def main():
 
     # Clear out any old coverage data.
     logging.info("Clearing old coverage data.")
-    sh(sys.executable + " -m coverage erase")
+    sh([sys.executable, "-m", "coverage", "erase"])
 
     # Startup the test runner.
     runner = TestRunner(test_list, contest_id=args.contest, workers=4)
-    runner.startup()
 
     # Submit and wait for all tests to complete.
     runner.submit_tests()

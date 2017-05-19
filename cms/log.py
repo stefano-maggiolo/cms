@@ -53,7 +53,7 @@ import logging
 import sys
 import json
 
-import gevent.coros
+import gevent.lock
 import requests
 
 from cmscommon.terminal import colors, add_color_to_string, has_color_support
@@ -70,7 +70,7 @@ class StreamHandler(logging.StreamHandler):
         """Set self.lock to a new gevent RLock.
 
         """
-        self.lock = gevent.coros.RLock()
+        self.lock = gevent.lock.RLock()
 
 
 class FileHandler(logging.FileHandler):
@@ -84,12 +84,10 @@ class FileHandler(logging.FileHandler):
         """Set self.lock to a new gevent RLock.
 
         """
-        self.lock = gevent.coros.RLock()
+        self.lock = gevent.lock.RLock()
 
 
 class MetricHandler(logging.Handler):
-
-    MAX_CONCURRENT_PUSHES = 100
 
     def __init__(self, metric_server):
         super(MetricHandler, self).__init__()
@@ -99,7 +97,7 @@ class MetricHandler(logging.Handler):
         """Set self.lock to a semaphore
 
         """
-        self.lock = gevent.coros.Semaphore(self.MAX_CONCURRENT_PUSHES)
+        self.lock = gevent.lock.RLock()
 
     def emit(self, record):
         if record.levelno != logging.getLevelName("METRIC"):
@@ -166,7 +164,7 @@ class LogServiceHandler(logging.Handler):
         """Set self.lock to a new gevent RLock.
 
         """
-        self.lock = gevent.coros.RLock()
+        self.lock = gevent.lock.RLock()
 
     # Taken from CPython, combining emit and makePickle, and adapted to
     # not pickle the dictionary and use its items as keyword parameters

@@ -36,10 +36,11 @@ from sqlalchemy.schema import Column, ForeignKey, CheckConstraint, \
 from sqlalchemy.types import Boolean, Integer, Float, String, Unicode, \
     Interval, Enum
 from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.ext.orderinglist import ordering_list
 
-from . import Base, Contest
-from .smartmappedcollection import smart_mapped_collection, smc_sa10_workaround
+from . import Base, Contest, CodenameConstraint, FilenameConstraint, \
+    DigestConstraint
 from cms import SCORE_MODE_MAX, SCORE_MODE_MAX_TOKENED_LAST
 
 
@@ -95,6 +96,7 @@ class Task(Base):
     # Short name and long human readable title of the task.
     name = Column(
         Unicode,
+        CodenameConstraint("name"),
         nullable=False,
         unique=True)
     title = Column(
@@ -244,12 +246,13 @@ class Statement(Base):
                    onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
         index=True)
-    task = smc_sa10_workaround(relationship(
+    task = relationship(
         Task,
         backref=backref('statements',
-                        collection_class=smart_mapped_collection('language'),
+                        collection_class=
+                            attribute_mapped_collection('language'),
                         cascade="all, delete-orphan",
-                        passive_deletes=True)))
+                        passive_deletes=True))
 
     # Code for the language the statement is written in.
     # It can be an arbitrary string, but if it's in the form "en" or "en_US"
@@ -263,6 +266,7 @@ class Statement(Base):
     # Digest of the file.
     digest = Column(
         String,
+        DigestConstraint("digest"),
         nullable=False)
 
 
@@ -288,19 +292,22 @@ class Attachment(Base):
                    onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
         index=True)
-    task = smc_sa10_workaround(relationship(
+    task = relationship(
         Task,
         backref=backref('attachments',
-                        collection_class=smart_mapped_collection('filename'),
+                        collection_class=
+                            attribute_mapped_collection('filename'),
                         cascade="all, delete-orphan",
-                        passive_deletes=True)))
+                        passive_deletes=True))
 
     # Filename and digest of the provided attachment.
     filename = Column(
         Unicode,
+        FilenameConstraint("filename"),
         nullable=False)
     digest = Column(
         String,
+        DigestConstraint("digest"),
         nullable=False)
 
 
@@ -333,6 +340,7 @@ class SubmissionFormatElement(Base):
     # Format of the given submission file.
     filename = Column(
         Unicode,
+        FilenameConstraint("filename"),
         nullable=False)
 
 
@@ -492,19 +500,22 @@ class Manager(Base):
                    onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
         index=True)
-    dataset = smc_sa10_workaround(relationship(
+    dataset = relationship(
         Dataset,
         backref=backref('managers',
-                        collection_class=smart_mapped_collection('filename'),
+                        collection_class=
+                            attribute_mapped_collection('filename'),
                         cascade="all, delete-orphan",
-                        passive_deletes=True)))
+                        passive_deletes=True))
 
     # Filename and digest of the provided manager.
     filename = Column(
         Unicode,
+        FilenameConstraint("filename"),
         nullable=False)
     digest = Column(
         String,
+        DigestConstraint("digest"),
         nullable=False)
 
 
@@ -529,16 +540,18 @@ class Testcase(Base):
                    onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
         index=True)
-    dataset = smc_sa10_workaround(relationship(
+    dataset = relationship(
         Dataset,
         backref=backref('testcases',
-                        collection_class=smart_mapped_collection('codename'),
+                        collection_class=
+                            attribute_mapped_collection('codename'),
                         cascade="all, delete-orphan",
-                        passive_deletes=True)))
+                        passive_deletes=True))
 
     # Codename identifying the testcase.
     codename = Column(
         Unicode,
+        CodenameConstraint("codename"),
         nullable=False)
 
     # If the testcase outcome is going to be showed to the user (even
@@ -551,7 +564,9 @@ class Testcase(Base):
     # Digests of the input and output files.
     input = Column(
         String,
+        DigestConstraint("input"),
         nullable=False)
     output = Column(
         String,
+        DigestConstraint("output"),
         nullable=False)

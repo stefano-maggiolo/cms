@@ -5,7 +5,7 @@
 # Copyright © 2010-2013 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
 # Copyright © 2010-2015 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
-# Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2013-2017 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -33,7 +33,7 @@ import uuid
 from weakref import WeakSet
 
 import gevent
-import gevent.coros
+import gevent.lock
 import gevent.socket
 import gevent.event
 
@@ -99,8 +99,8 @@ class RemoteServiceBase(object):
         self._reader = None
         self._writer = None
 
-        self._read_lock = gevent.coros.RLock()
-        self._write_lock = gevent.coros.RLock()
+        self._read_lock = gevent.lock.RLock()
+        self._write_lock = gevent.lock.RLock()
 
     def add_on_connect_handler(self, handler):
         """Register a callback for connection establishment.
@@ -190,8 +190,8 @@ class RemoteServiceBase(object):
             self._socket.shutdown(socket.SHUT_RDWR)
             self._socket.close()
         except socket.error as error:
-            logger.debug("Couldn't disconnect from %s: %s.",
-                         self._repr_remote(), error)
+            logger.warning("Couldn't disconnect from %s: %s.",
+                           self._repr_remote(), error)
         finally:
             self.finalize("Disconnection requested.")
         return True
@@ -302,7 +302,7 @@ class RemoteServiceServer(RemoteServiceBase):
 
     def handle(self, socket_):
         self.initialize(socket_, self.remote_address)
-        gevent.spawn(self.run)
+        self.run()
 
     def run(self):
         """Start listening for requests, and go on forever.
@@ -592,6 +592,7 @@ class RemoteServiceClient(RemoteServiceBase):
         try:
             data = json.dumps(request, encoding='utf-8')
         except (TypeError, ValueError):
+            logger.error("JSON encoding failed.", exc_info=True)
             result.set_exception(RPCError("JSON encoding failed."))
             return result
 

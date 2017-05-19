@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Contest Management System - http://cms-dev.github.io/
-# Copyright © 2015-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2015-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2016 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -31,12 +31,12 @@ import os
 import random
 import subprocess
 
-from cms import LANGUAGES
 from cmstestsuite import get_cms_config, CONFIG
 from cmstestsuite import add_contest, add_existing_user, add_existing_task, \
     add_user, add_task, add_testcase, add_manager, \
     get_tasks, get_users, initialize_aws
 from cmstestsuite.Test import TestFailure
+from cmstestsuite.Tests import ALL_LANGUAGES
 from cmstestsuite.programstarter import ProgramStarter
 from cmscommon.datetime import get_system_timezone
 
@@ -57,6 +57,7 @@ class TestRunner(object):
         self.rand = random.randint(0, 999999999)
 
         self.num_users = 0
+        self.workers = workers
 
         # Load config from cms.conf.
         TestRunner.load_cms_conf()
@@ -66,7 +67,7 @@ class TestRunner(object):
             os.chdir("%(TEST_DIR)s" % CONFIG)
             os.environ["PYTHONPATH"] = "%(TEST_DIR)s" % CONFIG
 
-        self.start_generic_services(workers)
+        self.start_generic_services()
         initialize_aws(self.rand)
 
         if contest_id is None:
@@ -109,18 +110,10 @@ class TestRunner(object):
 
     # Service management.
 
-    def startup(self):
-        self.ps.start("EvaluationService", contest=self.contest_id)
-        self.ps.start("ContestWebServer", contest=self.contest_id)
-        self.ps.start("ProxyService", contest=self.contest_id)
-        self.ps.wait()
-
-    def start_generic_services(self, workers=1):
+    def start_generic_services(self):
         self.ps.start("LogService")
         self.ps.start("ResourceService")
         self.ps.start("Checker")
-        for shard in xrange(workers):
-            self.ps.start("Worker", shard)
         self.ps.start("ScoringService")
         self.ps.start("AdminWebServer")
         # Just to verify it starts successfully.
@@ -143,7 +136,7 @@ class TestRunner(object):
         self.contest_id = add_contest(
             name="testcontest" + str(self.rand),
             description="A test contest #%s." % self.rand,
-            languages=LANGUAGES,
+            languages=list(ALL_LANGUAGES),
             allow_password_authentication="checked",
             start=start_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
             stop=stop_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
@@ -180,10 +173,10 @@ class TestRunner(object):
         user_create_args = {
             "username": username,
             "password": "kamikaze",
+            "method": "plaintext",
             "first_name": "Ms. Test",
             "last_name": "Wabbit the %d%s" % (self.num_users,
-                                              enumerify(self.num_users)),
-            "multipart_post": True,
+                                              enumerify(self.num_users))
         }
         if username in users:
             self.user_id = users[username]['id']
@@ -294,7 +287,11 @@ class TestRunner(object):
         # tasks and sending them to RWS.
         for test in self.test_list:
             self.create_or_get_task(test.task_module)
-        self.ps.restart("ProxyService", contest=self.contest_id)
+        self.ps.start("EvaluationService", contest=self.contest_id)
+        self.ps.start("ContestWebServer", contest=self.contest_id)
+        self.ps.start("ProxyService", contest=self.contest_id)
+        for shard in xrange(self.workers):
+            self.ps.start("Worker", shard)
         self.ps.wait()
 
         for i, (test, lang) in enumerate(self._all_submissions()):

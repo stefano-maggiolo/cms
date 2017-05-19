@@ -1,7 +1,8 @@
 {% import time %}
 {% import json %}
-{% from cms import DEFAULT_LANGUAGES, LANGUAGE_NAMES, LANGUAGES, config %}
+{% from cms import config %}
 {% from cms.db import SubmissionResult, UserTestResult %}
+{% from cms.grading.languagemanager import LANGUAGES, get_language %}
 {% from cmscommon.datetime import make_timestamp %}
 {% from cmscommon.crypto import get_hex_random_key %}
 <!DOCTYPE html>
@@ -35,14 +36,19 @@
 function init()
 {
     {% if contest is None %}
-    utils = new CMS.AWSUtils("{{ url_root }}", {{ make_timestamp(timestamp) }}, 0, 0, -1);
+    utils = new CMS.AWSUtils("{{ url_root }}", {{ make_timestamp(timestamp) }}, 0, 0, 0, 0, -1);
     utils.update_notifications();
     setInterval(function() { utils.update_notifications(); }, 15000);
     {% else %}
-    utils = new CMS.AWSUtils("{{ url_root }}", {{ make_timestamp(timestamp) }}, {{ make_timestamp(contest.start) }}, {{ make_timestamp(contest.stop) }}, {{ phase }});
+    utils = new CMS.AWSUtils("{{ url_root }}", {{ make_timestamp(timestamp) }},
+        {{ make_timestamp(contest.start) }}, {{ make_timestamp(contest.stop) }},
+        {{ make_timestamp(contest.analysis_start) }}, {{ make_timestamp(contest.analysis_stop) }},
+        {{ phase }});
 
+    {% if phase < 3 %}
     utils.update_remaining_time();
     setInterval(function() { utils.update_remaining_time(); }, 1000);
+    {% end %}
     utils.update_notifications();
     setInterval(function() { utils.update_notifications(); }, 15000);
     {% end %}
@@ -75,7 +81,7 @@ $(document).ready(init);
         <div id="sidebar_header">
           <div class="login_notice">
             Hello, <a href="{{ url_root }}/admins">{{ current_user.name }}</a>.
-              Logout <a href="{{ url_root }}/logout">here</a>.
+              <form class="inline" action="{{ url_root }}/logout" method="POST">{% module xsrf_form_html() %}<input type="submit" value="Logout"></form>
           </div>
           {% if contest is None %}
           <h1 class="parent">Administration</h1>
@@ -235,9 +241,10 @@ $(document).ready(init);
             </li>
           </ul>
           <div class="hr"></div>
-          {% if phase != 1 %}
-          <div class="footer">Time left: <span id="remaining"></span></div>
-          {% end %}
+          <div class="footer">
+            <span id="remaining_text"></span>
+            <span id="remaining_value"></span>
+          </div>
         {% end %}
 {% end %}
         <div class="cr_notice">CMS <a href="http://github.com/cms-dev/cms/">codebase</a> is released under the<br/><a href="http://www.gnu.org/licenses/agpl.txt">GNU Affero General Public License</a>.</div>

@@ -8,6 +8,7 @@
 # Copyright © 2012-2015 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
+# Copyright © 2016 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -30,13 +31,15 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from sqlalchemy import Boolean
 from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, \
     UniqueConstraint
 from sqlalchemy.types import Integer, Float, String, Unicode, DateTime
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from . import Base, Participation, Task, Dataset, Testcase
-from .smartmappedcollection import smart_mapped_collection, smc_sa10_workaround
+from . import Base, Participation, Task, Dataset, Testcase, \
+    FilenameConstraint, DigestConstraint
 
 from cmscommon.datetime import make_datetime
 
@@ -94,6 +97,13 @@ class Submission(Base):
         Unicode,
         nullable=False,
         default="")
+
+    # If false, submission will not be considered in contestant's score.
+    official = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+    )
 
     @property
     def short_comment(self):
@@ -180,19 +190,22 @@ class File(Base):
                    onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
         index=True)
-    submission = smc_sa10_workaround(relationship(
+    submission = relationship(
         Submission,
         backref=backref('files',
-                        collection_class=smart_mapped_collection('filename'),
+                        collection_class=
+                            attribute_mapped_collection('filename'),
                         cascade="all, delete-orphan",
-                        passive_deletes=True)))
+                        passive_deletes=True))
 
     # Filename and digest of the submitted file.
     filename = Column(
         Unicode,
+        FilenameConstraint("filename"),
         nullable=False)
     digest = Column(
         String,
+        DigestConstraint("digest"),
         nullable=False)
 
 
@@ -351,8 +364,9 @@ class SubmissionResult(Base):
         String,
         nullable=True)
 
-    # The same as the last two fields, but from the point of view of
-    # the user (when he/she did not play a token).
+    # The same as the last two fields, but only showing information
+    # visible to the user (assuming they did not use a token on this
+    # submission).
     public_score = Column(
         Float,
         nullable=True)
@@ -598,19 +612,22 @@ class Executable(Base):
         viewonly=True)
 
     # SubmissionResult owning the executable.
-    submission_result = smc_sa10_workaround(relationship(
+    submission_result = relationship(
         SubmissionResult,
         backref=backref('executables',
-                        collection_class=smart_mapped_collection('filename'),
+                        collection_class=
+                            attribute_mapped_collection('filename'),
                         cascade="all, delete-orphan",
-                        passive_deletes=True)))
+                        passive_deletes=True))
 
     # Filename and digest of the generated executable.
     filename = Column(
         Unicode,
+        FilenameConstraint("filename"),
         nullable=False)
     digest = Column(
         String,
+        DigestConstraint("digest"),
         nullable=False)
 
 
