@@ -54,7 +54,7 @@ import sys
 import json
 
 import gevent.lock
-import requests
+import grequests
 
 from cmscommon.terminal import colors, add_color_to_string, has_color_support
 
@@ -106,7 +106,7 @@ class MetricHandler(logging.Handler):
             metric_data = json.loads(record.getMessage())
             metric_name = metric_data.pop("metric_name")
             value = metric_data.pop("value")
-            additional_tags = ["service_name", "service_shard", "funcName"]
+            additional_tags = ["service_name", "service_shard"]
             for tag in additional_tags:
                 value = getattr(record, tag, None)
                 if value is not None and tag not in metric_data:
@@ -122,12 +122,12 @@ class MetricHandler(logging.Handler):
                 str(timestamp)
             )
             normal_logger = logging.getLogger()
-            normal_logger.warning(metric_data_string)
-            response = requests.post(
+            normal_logger.debug(metric_data_string)
+            request = grequests.post(
                 url=self.metric_server,
                 data=metric_data_string,
             )
-            normal_logger.warning(response)
+            grequests.send(request)
         except KeyError:
             pass
         except:
