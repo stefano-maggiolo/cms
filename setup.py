@@ -108,6 +108,7 @@ setup(
     scripts=["scripts/cmsLogService",
              "scripts/cmsScoringService",
              "scripts/cmsEvaluationService",
+             "scripts/cmsQueueService",
              "scripts/cmsWorker",
              "scripts/cmsResourceService",
              "scripts/cmsChecker",
