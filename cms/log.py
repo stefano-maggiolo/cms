@@ -108,9 +108,9 @@ class MetricHandler(logging.Handler):
             value = metric_data.pop("value")
             additional_tags = ["service_name", "service_shard"]
             for tag in additional_tags:
-                value = getattr(record, tag, None)
-                if value is not None and tag not in metric_data:
-                    metric_data[tag] = value
+                tag_value = getattr(record, tag, None)
+                if tag_value is not None and tag not in metric_data:
+                    metric_data[tag] = tag_value
             tags = ["%s=%s" % (str(a), str(b))
                     for a, b in metric_data.iteritems()]
             metric_id = ",".join([metric_name] + tags)
