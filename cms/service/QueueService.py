@@ -52,8 +52,17 @@ from .esoperations import ESOperation, \
     get_submissions_operations, get_user_tests_operations
 from .workerpool import WorkerPool
 
-
 logger = logging.getLogger(__name__)
+
+
+def report_length(attr, name):
+    def decr(method):
+        def wrapper(self, *args, **kwargs):
+            ret = method(self, *args, **kwargs)
+            logger.metric(name, value=len(getattr(self, attr)))
+            return ret
+        return wrapper
+    return decr
 
 
 class PendingResults(object):
@@ -95,6 +104,7 @@ class PendingResults(object):
         """Wait until there is a result available."""
         self._event.wait()
 
+    @report_length("_results", "pending_results")
     def add_result(self, operation, job):
         """Add one result to the pending operations.
 
@@ -106,6 +116,8 @@ class PendingResults(object):
             self._results[operation] = job
             self._event.set()
 
+    @report_length("_writes", "pending_writes")
+    @report_length("_results", "pending_results")
     def pop(self):
         """Extract one of the pending result for writing.
 
@@ -124,6 +136,7 @@ class PendingResults(object):
             self._writes.add(operation)
             return operation, job
 
+    @report_length("_writes", "pending_writes")
     def finalize(self, operation):
         """Mark the operation as fully completed and written."""
         with self._lock:
@@ -222,6 +235,10 @@ class EvaluationExecutor(Executor):
                     self._drop_current = False
                     self._currently_executing = []
                     break
+
+    @report_length("_operation_queue", "pending_submissions")
+    def enqueue(self, *args, **kwargs):
+        return super(EvaluationExecutor, self).enqueue(*args, **kwargs)
 
     def dequeue(self, operation):
         """Remove an item from the queue.
