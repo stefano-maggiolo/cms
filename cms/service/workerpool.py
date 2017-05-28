@@ -8,6 +8,7 @@
 # Copyright © 2013-2015 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -215,39 +216,47 @@ class WorkerPool(object):
         logger.debug("Worker %s acquired.", shard)
         self._start_time[shard] = make_datetime()
 
-        with SessionGen() as session:
-            jobs = []
-            datasets = {}
-            submissions = {}
-            user_tests = {}
-            for operation in operations:
-                logger.info("Asking worker %s to `%s'.", shard, operation)
+        session_required = any([operation.job is None for operation in operations])
 
-                if operation.job is None:
-                    if operation.dataset_id not in datasets:
-                        datasets[operation.dataset_id] = Dataset.get_from_id(
-                            operation.dataset_id, session)
-                    object_ = None
-                    if operation.for_submission():
-                        if operation.object_id not in submissions:
-                            submissions[operation.object_id] = \
-                                Submission.get_from_id(
-                                    operation.object_id, session)
-                        object_ = submissions[operation.object_id]
+        if session_required:
+
+            with SessionGen() as session:
+                jobs = []
+                datasets = {}
+                submissions = {}
+                user_tests = {}
+                for operation in operations:
+                    logger.info("Asking worker %s to `%s'.", shard, operation)
+
+                    if operation.job is None:
+                        if operation.dataset_id not in datasets:
+                            datasets[operation.dataset_id] = Dataset.get_from_id(
+                                operation.dataset_id, session)
+                        object_ = None
+                        if operation.for_submission():
+                            if operation.object_id not in submissions:
+                                submissions[operation.object_id] = \
+                                    Submission.get_from_id(
+                                        operation.object_id, session)
+                            object_ = submissions[operation.object_id]
+                        else:
+                            if operation.object_id not in user_tests:
+                                user_tests[operation.object_id] = \
+                                    UserTest.get_from_id(
+                                        operation.object_id, session)
+                            object_ = user_tests[operation.object_id]
+
+                        job = Job.from_operation(
+                            operation, object_, datasets[operation.dataset_id])
                     else:
-                        if operation.object_id not in user_tests:
-                            user_tests[operation.object_id] = \
-                                UserTest.get_from_id(operation.object_id, session)
-                        object_ = user_tests[operation.object_id]
+                        job = operation.job
 
-                    job = Job.from_operation(
-                        operation, object_, datasets[operation.dataset_id])
-                else:
-                    job = operation.job
+                    logger.info("Asking worker %s to `%s'.", shard, operation)
 
-                logger.info("Asking worker %s to `%s'.", shard, operation)
-
-                jobs.append(job)
+                    jobs.append(job)
+                job_group_dict = JobGroup(jobs).export_to_dict()
+        else:
+            jobs = [operation.job for operation in operations]
             job_group_dict = JobGroup(jobs).export_to_dict()
 
         self._worker[shard].execute_job_group(

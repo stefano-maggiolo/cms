@@ -35,7 +35,6 @@ import logging
 
 from sqlalchemy import case, literal
 
-from cms.db import SessionGen
 from cms.io import PriorityQueue, QueueItem
 from cms.db import Dataset, Evaluation, Submission, SubmissionResult, \
     Task, Testcase, UserTest, UserTestResult
