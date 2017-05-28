@@ -3,11 +3,12 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2014 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2010-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2010-2018 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013-2015 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
+# Copyright © 2017-2018 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -511,6 +512,7 @@ class ESOperation(QueueItem):
         self.object_id = object_id
         self.dataset_id = dataset_id
         self.testcase_codename = testcase_codename
+        self.job = None
 
     @staticmethod
     def from_dict(d):
@@ -568,7 +570,7 @@ class ESOperation(QueueItem):
             "type": self.type_,
             "object_id": self.object_id,
             "dataset_id": self.dataset_id,
-            "testcase_codename": self.testcase_codename
+            "testcase_codename": self.testcase_codename,
         }
 
     def to_list(self):

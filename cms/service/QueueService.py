@@ -9,6 +9,7 @@
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2016 Luca Versari <veluca93@gmail.com>
+# Copyright © 2017-2018 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -50,7 +51,7 @@ from cms import ServiceCoord, get_service_shards, random_service
 from cms.io import Executor, TriggeredService, rpc_method
 from cms.db import Dataset, SessionGen
 from cms.service import get_submissions, get_submission_results
-from cms.grading.Job import JobGroup
+from cms.grading.Job import JobGroup, Job
 
 from .esoperations import ESOperation, get_relevant_operations, \
     get_submissions_operations, get_user_tests_operations
@@ -375,7 +376,7 @@ class QueueService(TriggeredService):
 
     @with_post_finish_lock
     @rpc_method
-    def enqueue(self, operation, priority, timestamp):
+    def enqueue(self, operation, priority, timestamp, job=None):
         """Push an operation in the queue.
 
         Push an operation in the operation queue if the submission is
@@ -395,6 +396,9 @@ class QueueService(TriggeredService):
 
         if operation in self.get_executor() or operation in self.pending:
             return False
+
+        if isinstance(job, dict):
+            operation.job = Job.import_from_dict_with_type(job)
 
         # enqueue() returns the number of successful pushes.
         return super(QueueService, self).enqueue(
