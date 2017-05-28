@@ -43,7 +43,6 @@ from cms.db import Dataset, SessionGen, Submission, UserTest
 from cms.grading.Job import Job, JobGroup
 from cmscommon.datetime import make_datetime, make_timestamp
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -216,13 +215,40 @@ class WorkerPool(object):
         logger.debug("Worker %s acquired.", shard)
         self._start_time[shard] = make_datetime()
 
-        jobs = []
+        with SessionGen() as session:
+            jobs = []
+            datasets = {}
+            submissions = {}
+            user_tests = {}
+            for operation in operations:
+                logger.info("Asking worker %s to `%s'.", shard, operation)
 
-        for operation in operations:
-            logger.info("Asking worker %s to `%s'.", shard, operation)
+                if operation.job is None:
+                    if operation.dataset_id not in datasets:
+                        datasets[operation.dataset_id] = Dataset.get_from_id(
+                            operation.dataset_id, session)
+                    object_ = None
+                    if operation.for_submission():
+                        if operation.object_id not in submissions:
+                            submissions[operation.object_id] = \
+                                Submission.get_from_id(
+                                    operation.object_id, session)
+                        object_ = submissions[operation.object_id]
+                    else:
+                        if operation.object_id not in user_tests:
+                            user_tests[operation.object_id] = \
+                                UserTest.get_from_id(operation.object_id, session)
+                        object_ = user_tests[operation.object_id]
 
-            jobs.append(Job.import_from_dict_with_type(operation.job))
-        job_group_dict = JobGroup(jobs).export_to_dict()
+                    job = Job.from_operation(
+                        operation, object_, datasets[operation.dataset_id])
+                else:
+                    job = operation.job
+
+                logger.info("Asking worker %s to `%s'.", shard, operation)
+
+                jobs.append(job)
+            job_group_dict = JobGroup(jobs).export_to_dict()
 
         self._worker[shard].execute_job_group(
             job_group_dict=job_group_dict,
@@ -375,10 +401,10 @@ class WorkerPool(object):
 
                     # We return the operation so ES can do what it needs.
                     if not self._ignore[shard] and \
-                            isinstance(self._operations[shard], list):
+                        isinstance(self._operations[shard], list):
                         for operation in self._operations[shard]:
                             if operation not in \
-                                    self._operations_to_ignore[shard]:
+                                self._operations_to_ignore[shard]:
                                 lost_operations.append(operation)
 
                     # Also, we are not trusting it, so we are not
@@ -464,8 +490,8 @@ class WorkerPool(object):
         for shard in self._worker:
             if not self._worker[shard].connected and \
                     self._operations[shard] not in [
-                        WorkerPool.WORKER_DISABLED,
-                        WorkerPool.WORKER_INACTIVE]:
+                    WorkerPool.WORKER_DISABLED,
+                    WorkerPool.WORKER_INACTIVE]:
                 if not self._ignore[shard]:
                     lost_operations += self._operations[shard]
                 self.release_worker(shard)
