@@ -9,6 +9,7 @@
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2016 Luca Versari <veluca93@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -196,10 +197,23 @@ class EvaluationService(Service):
         return (bool): True if pushed, False if not.
 
         """
+        with SessionGen() as session:
+            dataset = Dataset.get_from_id(
+                operation.dataset_id, session)
+            if operation.for_submission():
+                object_ = Submission.get_from_id(
+                    operation.object_id, session)
+            else:
+                object_ = UserTest.get_from_id(
+                    operation.object_id, session)
+            job = Job.from_operation(
+                operation, object_,
+                dataset).export_to_dict()
         return self.queue_service.enqueue(
             operation=operation.to_list(),
             priority=priority,
-            timestamp=(timestamp - EvaluationService.EPOCH).total_seconds())
+            timestamp=(timestamp - EvaluationService.EPOCH).total_seconds(),
+            job=job)
 
     @with_post_finish_lock
     @rpc_method
