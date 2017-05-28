@@ -35,6 +35,7 @@ import logging
 
 from sqlalchemy import case, literal
 
+from cms.db import SessionGen
 from cms.io import PriorityQueue, QueueItem
 from cms.db import Dataset, Evaluation, Submission, SubmissionResult, \
     Task, Testcase, UserTest, UserTestResult
@@ -502,11 +503,24 @@ class ESOperation(QueueItem):
     USER_TEST_EVALUATION = "evaluate_test"
 
     # Testcase codename is only needed for EVALUATION type of operation
-    def __init__(self, type_, object_id, dataset_id, testcase_codename=None):
+    def __init__(self, type_, object_id, dataset_id, testcase_codename=None, job=None):
         self.type_ = type_
         self.object_id = object_id
         self.dataset_id = dataset_id
         self.testcase_codename = testcase_codename
+        if job is None:
+            from cms.grading.Job import Job
+            with SessionGen() as session:
+                dataset = Dataset.get_from_id(
+                        self.dataset_id, session)
+                if self.for_submission():
+                    object_ = Submission.get_from_id(
+                        self.object_id, session)
+                else:
+                    object_ = UserTest.get_from_id(
+                        self.object_id, session)
+                job = Job.from_operation(self, object_, dataset).export_to_dict()
+        self.job = job
 
     @staticmethod
     def from_dict(d):
@@ -564,7 +578,7 @@ class ESOperation(QueueItem):
             "type": self.type_,
             "object_id": self.object_id,
             "dataset_id": self.dataset_id,
-            "testcase_codename": self.testcase_codename
+            "testcase_codename": self.testcase_codename,
         }
 
     def to_list(self):
@@ -572,5 +586,6 @@ class ESOperation(QueueItem):
             self.type_,
             self.object_id,
             self.dataset_id,
-            self.testcase_codename
+            self.testcase_codename,
+            self.job
         ]
