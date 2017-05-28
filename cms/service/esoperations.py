@@ -503,7 +503,8 @@ class ESOperation(QueueItem):
     USER_TEST_EVALUATION = "evaluate_test"
 
     # Testcase codename is only needed for EVALUATION type of operation
-    def __init__(self, type_, object_id, dataset_id, testcase_codename=None, job=None):
+    def __init__(self, type_, object_id, dataset_id,
+                 testcase_codename=None, job=None):
         self.type_ = type_
         self.object_id = object_id
         self.dataset_id = dataset_id
@@ -519,7 +520,9 @@ class ESOperation(QueueItem):
                 else:
                     object_ = UserTest.get_from_id(
                         self.object_id, session)
-                job = Job.from_operation(self, object_, dataset).export_to_dict()
+                job = Job.from_operation(
+                    self, object_,
+                    dataset).export_to_dict()
         self.job = job
 
     @staticmethod
