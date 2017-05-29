@@ -216,7 +216,8 @@ class WorkerPool(object):
         logger.debug("Worker %s acquired.", shard)
         self._start_time[shard] = make_datetime()
 
-        session_required = any([operation.job is None for operation in operations])
+        session_required = any([operation.job is None
+                                for operation in operations])
 
         if session_required:
 
@@ -230,8 +231,9 @@ class WorkerPool(object):
 
                     if operation.job is None:
                         if operation.dataset_id not in datasets:
-                            datasets[operation.dataset_id] = Dataset.get_from_id(
-                                operation.dataset_id, session)
+                            datasets[operation.dataset_id] = \
+                                Dataset.get_from_id(
+                                    operation.dataset_id, session)
                         object_ = None
                         if operation.for_submission():
                             if operation.object_id not in submissions:

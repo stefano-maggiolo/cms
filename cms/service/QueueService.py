@@ -205,6 +205,7 @@ class EvaluationExecutor(Executor):
                     ratio, ret)
         return ret
 
+    @report_length("_operation_queue", "pending_submissions")
     def execute(self, entries):
         """Execute a batch of operations in the queue.
 
