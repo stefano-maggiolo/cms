@@ -124,7 +124,7 @@ class EvaluationService(Service):
         self.scoring_service = self.connect_to(
             ServiceCoord("ScoringService", 0))
 
-    def get_submission_operations(self, submission):
+    def get_submission_operations(self, submission, dataset=None):
         """Push in queue the operations required by a submission.
 
         submission (Submission): a submission.
@@ -134,7 +134,11 @@ class EvaluationService(Service):
 
         """
         operations = []
-        for dataset in get_datasets_to_judge(submission.task):
+        if dataset is None:
+            datasets = get_datasets_to_judge(submission.task)
+        else:
+            datasets = [dataset]
+        for dataset in datasets:
             submission_result = submission.get_result(dataset)
             number_of_operations = 0
             for operation, priority, timestamp in submission_get_operations(
@@ -525,7 +529,7 @@ class EvaluationService(Service):
         return self.get_user_test_operations(user_test)
 
     @rpc_method
-    def new_submission(self, submission_id):
+    def new_submission(self, submission_id, dataset_id=None):
         """This RPC prompts ES of the existence of a new
         submission. ES takes the right countermeasures, i.e., it
         schedules it for compilation.
@@ -535,12 +539,17 @@ class EvaluationService(Service):
         """
         with SessionGen() as session:
             submission = Submission.get_from_id(submission_id, session)
+            if dataset_id is not None:
+                dataset = Dataset.get_from_id(dataset_id, session)
+            else:
+                dataset = None
             if submission is None:
                 logger.error("[new_submission] Couldn't find submission "
                              "%d in the database.", submission_id)
                 return
 
-            self.enqueue_all(self.get_submission_operations(submission))
+            self.enqueue_all(self.get_submission_operations(
+                submission, dataset))
 
             session.commit()
 
