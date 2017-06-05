@@ -114,7 +114,8 @@ class Score(object):
         if self._submissions[s_id].token:
             self._released.insert(self._submissions[s_id].score)
 
-        if change.task_score != self.get_score():
+        if change.task_score is not None and \
+                change.task_score != self.get_score():
             self._history.append((change.time, change.task_score))
 
     def get_score(self):

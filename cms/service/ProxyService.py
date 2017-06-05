@@ -401,9 +401,10 @@ class ProxyService(TriggeredService):
             subchange_data["score"] = submission_result.score
             subchange_data["extra"] = \
                 json.loads(submission_result.ranking_score_details)
-            subchange_data["task_score"] = submission_result.task_score
-            subchange_data["task_extra"] = \
-                json.loads(submission_result.task_ranking_score_details)
+            if submission_result.task_score is not None:
+                subchange_data["task_score"] = submission_result.task_score
+                subchange_data["task_extra"] = \
+                    json.loads(submission_result.task_ranking_score_details)
 
         self.scores_sent_to_rankings.add(submission.id)
 
