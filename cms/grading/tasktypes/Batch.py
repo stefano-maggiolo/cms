@@ -7,6 +7,7 @@
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2012-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2017 Myungwoo Chun <mc.tamaki@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -150,6 +151,7 @@ class Batch(TaskType):
             job.success = True
             job.compilation_success = False
             job.text = [N_("Invalid files in submission")]
+            job.plus = {}
             logger.error("Submission contains %d files, expecting 1",
                          len(job.files), extra={"operation": job.info})
             return True
