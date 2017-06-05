@@ -3,6 +3,7 @@
 
 # Programming contest management system
 # Copyright © 2017 Kiarash Golezardi <kiarashgolezardi@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -22,22 +23,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import json
-import io
 import logging
 import os
-import sys
+import re
 
-from datetime import datetime
 from datetime import timedelta
 
-import xml.etree.ElementTree as ET
-
-from cms import config
-from cms.db import Contest, User, Task, Statement, \
-    SubmissionFormatElement, Dataset, Manager, Testcase
+from cms.db import Task, SubmissionFormatElement, Dataset, Manager, Testcase
 from cmscontrib import touch
-
-from .base_loader import ContestLoader, TaskLoader, UserLoader
+from .base_loader import TaskLoader
 
 logger = logging.getLogger(__name__)
 
@@ -179,9 +173,8 @@ class CpsTaskLoader(TaskLoader):
         if os.path.exists(checker_src):
             logger.info("Checker found, compiling")
             checker_exe = os.path.join(checker_dir, "checker")
-            os.system("cat %s | \
-                g++ -x c++ -O2 -static -o %s -" %
-                      (checker_src, checker_exe))
+            os.system("g++ -x c++ -O2 -static -o %s %s" %
+                      (checker_exe, checker_src))
             digest = self.file_cacher.put_file_from_path(
                 checker_exe,
                 "Manager for task %s" % name)
@@ -257,6 +250,18 @@ class CpsTaskLoader(TaskLoader):
             args["score_type_parameters"] = str(100 / number_tests)
         else:
             args["score_type"] = "GroupMin"
+            parsed_data = []
+            for subtask in subtasks:
+                with open(os.path.join(subtasks_dir, subtask)) as subtask_json:
+                    subtask_data = json.load(subtask_json)
+                    score = int(subtask_data["score"])
+                    testcases = "|".join(
+                        re.escape(testcase)
+                        for testcase in subtask_data["testcases"]
+                    )
+                    parsed_data.append([score, testcases])
+            args["score_type_parameters"] = json.dumps(parsed_data)
+
             # FIXME: create the score_type_parameters
 
         dataset = Dataset(**args)
