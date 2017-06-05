@@ -7,6 +7,7 @@
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013-2016 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2015 wafrelka <wafrelka@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -56,6 +57,7 @@ class ScoreType(object):
 
     """
     TEMPLATE = ""
+    TOTAL_SCORE_TEMPLATE = ""
 
     def __init__(self, parameters, public_testcases):
         """Initializer.
@@ -123,6 +125,32 @@ class ScoreType(object):
             return Template(self.TEMPLATE).generate(details=score_details,
                                                     _=translator)
 
+    def get_total_score_html_details(self, score_details, translator=None):
+        """Return an HTML string representing the score details of a
+        participant.
+
+        score_details (unicode): the data saved by the score type
+            itself in the database; can be public or private.
+        translator (function|None): the function to localize strings,
+            or None to use the identity.
+
+        return (string): an HTML string representing score_details.
+
+        """
+        if translator is None:
+            translator = lambda string: string
+        try:
+            score_details = json.loads(score_details)
+        except (TypeError, ValueError):
+            # TypeError raised if score_details is None
+            logger.error("Found a null or non-JSON score details string. "
+                         "Try invalidating scores.")
+            return translator("Score details temporarily unavailable.")
+        else:
+            return Template(self.TOTAL_SCORE_TEMPLATE).generate(
+                details=score_details,
+                _=translator)
+
     def max_scores(self):
         """Returns the maximum score that one could aim to in this
         problem. Also return the maximum score from the point of view
@@ -152,6 +180,10 @@ class ScoreType(object):
 
         """
         logger.error("Unimplemented method compute_score.")
+        raise NotImplementedError("Please subclass this class.")
+
+    def compute_total_score(self, submission_results):
+        logger.error("Unimplemented method compute_total_score.")
         raise NotImplementedError("Please subclass this class.")
 
 
@@ -270,6 +302,38 @@ class ScoreTypeGroup(ScoreTypeAlone):
     {% end %}
             </tbody>
         </table>
+    </div>
+</div>
+{% end %}"""
+    TOTAL_SCORE_TEMPLATE = """\
+{% from cms.grading import format_status_text %}
+{% from cms.server import format_size %}
+{% set idx = 0 %}
+{% for st in details %}
+    {% if "score" in st and "max_score" in st %}
+        {% if st["score"] >= st["max_score"] %}
+<div class="subtask correct">
+        {% elif st["score"] <= 0.0 %}
+<div class="subtask notcorrect">
+        {% else %}
+<div class="subtask partiallycorrect">
+        {% end %}
+    {% else %}
+<div class="subtask undefined">
+    {% end %}
+    <div class="subtask-head">
+        <span class="title">
+            {{ _("Subtask %d") % st["idx"] }}
+        </span>
+    {% if "score" in st and "max_score" in st %}
+        <span class="score">
+            ({{ '%g' % round(st["score"], 2) }} / {{ st["max_score"] }})
+        </span>
+    {% else %}
+        <span class="score">
+            ({{ _("N/A") }})
+        </span>
+    {% end %}
     </div>
 </div>
 {% end %}"""
@@ -402,6 +466,73 @@ class ScoreTypeGroup(ScoreTypeAlone):
             public_score, json.dumps(public_subtasks), \
             ranking_details
 
+    def compute_total_score(self, submission_results):
+        subtask_scores = {}
+        subtask_public_scores = {}
+        for st_idx, _ in enumerate(self.parameters):
+            subtask_scores[st_idx] = []
+            subtask_public_scores[st_idx] = []
+        for submission_result in submission_results:
+            if submission_result.score_details is None:
+                continue
+            for subtask_result in json.loads(submission_result.score_details):
+                st_idx = subtask_result['idx'] - 1
+                if st_idx in subtask_scores:
+                    subtask_scores[st_idx].append(subtask_result['score'])
+            for subtask_public_result in json.loads(
+                    submission_result.public_score_details):
+                st_idx = subtask_public_result['idx'] - 1
+                if st_idx in subtask_public_scores:
+                    if 'score' in subtask_public_result:
+                        subtask_public_scores[st_idx].append(
+                            subtask_public_result['score'])
+        subtasks = []
+        public_subtasks = []
+        ranking_details = []
+
+        for st_idx, parameter in enumerate(self.parameters):
+
+            st_score = self.total_reduce([float(score)
+                                          for score in subtask_scores[st_idx]],
+                                         parameter)
+
+            st_public = self.total_reduce([float(score)
+                                           for score in
+                                           subtask_public_scores[st_idx]],
+                                          parameter)
+            if st_score is not None:
+                subtasks.append({
+                    "idx": st_idx + 1,
+                    "score": st_score,
+                    "max_score": parameter[0],
+                })
+            else:
+                subtasks.append({
+                    "idx": st_idx + 1,
+                })
+            if st_public is not None:
+                public_subtasks.append({
+                    "idx": st_idx + 1,
+                    "score": st_public,
+                    "max_score": parameter[0],
+                })
+            else:
+                public_subtasks.append({
+                    "idx": st_idx + 1,
+                })
+            if st_score is not None:
+                ranking_details.append("%g" % round(st_score, 2))
+            else:
+                ranking_details.append("%g" % round(0, 2))
+
+        score = sum(st["score"] for st in subtasks if "score" in st)
+        public_score = sum(st["score"]
+                           for st in public_subtasks
+                           if "score" in st)
+        return score, json.dumps(subtasks), \
+            public_score, json.dumps(public_subtasks), \
+            ranking_details
+
     def get_public_outcome(self, unused_outcome, unused_parameter):
         """Return a public outcome from an outcome.
 
@@ -432,3 +563,19 @@ class ScoreTypeGroup(ScoreTypeAlone):
         """
         logger.error("Unimplemented method reduce.")
         raise NotImplementedError("Please subclass this class.")
+
+    def total_reduce(self, outcomes, unused_parameter):
+        """Return the total score of a participant on a subtask
+         given the submission outcomes.
+
+        unused_outcomes ([float]): the outcomes of the submissions
+        in chronological order. note that this might be empty.
+        unused_parameter (list): the parameters of the group.
+
+        return (float): the public output.
+
+        """
+        if len(outcomes) == 0:
+            return None
+        else:
+            return max(outcomes)

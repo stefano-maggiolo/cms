@@ -11,7 +11,7 @@
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2015-2016 William Di Luigi <williamdiluigi@gmail.com>
 # Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
-# Copyright © 2016 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
+# Copyright © 2016-2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -506,21 +506,31 @@ class SubmissionDetailsHandler(ContestHandler):
         sr = submission.get_result(task.active_dataset)
         score_type = get_score_type(dataset=task.active_dataset)
 
+        task_details = None
         details = None
         if sr is not None:
-            if submission.tokened():
+            if submission.tokened() or self.r_params["actual_phase"] >= 3:
                 details = sr.score_details
+
             else:
                 details = sr.public_score_details
+            if self.r_params["actual_phase"] >= 3:
+                task_details = sr.task_score_details
+            else:
+                task_details = sr.task_public_score_details
 
             if sr.scored():
                 details = score_type.get_html_details(details, self._)
+                task_details = score_type.\
+                    get_total_score_html_details(task_details, self._)
             else:
+                task_details = None
                 details = None
 
         self.render("submission_details.html",
                     sr=sr,
-                    details=details)
+                    details=details,
+                    task_details=task_details)
 
 
 class SubmissionFileHandler(FileHandler):

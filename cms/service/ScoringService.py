@@ -7,6 +7,7 @@
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013-2016 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -33,6 +34,7 @@ import json
 import logging
 
 from cms import ServiceCoord, config
+from cms.db import SubmissionResult
 from cms.io import Executor, TriggeredService, rpc_method
 from cms.db import SessionGen, Submission, Dataset
 from cms.grading.scoretypes import get_score_type
@@ -109,13 +111,50 @@ class ScoringExecutor(Executor):
             submission_result.ranking_score_details = \
                 json.dumps(ranking_score_details)
 
+            task = submission.task
+            participation = submission.participation
+            relevant_submissions = session.query(SubmissionResult)\
+                .join(SubmissionResult.submission)\
+                .filter(Submission.participation_id == participation.id)\
+                .filter(Submission.task_id == task.id) \
+                .filter(SubmissionResult.dataset_id == dataset.id) \
+                .filter(SubmissionResult.filter_scored())\
+                .all()
+
+            changed_task_results = []
+            for i in range(len(relevant_submissions)):
+                sr = relevant_submissions[i]
+                if sr.submission.timestamp >= submission.timestamp:
+                    old_data = (sr.task_score,
+                                sr.task_score_details,
+                                sr.task_public_score,
+                                sr.task_public_score_details,
+                                sr.task_ranking_score_details)
+                    new_data = score_type.\
+                        compute_total_score(relevant_submissions[:i + 1])
+                    new_data = new_data[:4] + (json.dumps(new_data[4]), )
+                    if old_data != new_data:
+                        sr.task_score, \
+                            sr.task_score_details, \
+                            sr.task_public_score, \
+                            sr.task_public_score_details, \
+                            sr.task_ranking_score_details = \
+                            new_data
+                        changed_task_results.append(sr.submission_id)
             # Store it.
             session.commit()
 
             # If dataset is the active one, update RWS.
             if dataset is submission.task.active_dataset:
-                self.proxy_service.submission_scored(
-                    submission_id=submission.id)
+                if submission.id not in changed_task_results:
+                    logger.error("Submission was recently scored but "
+                                 "it isn't listed as submissions with "
+                                 "a task score change")
+                    changed_task_results.append(submission.id)
+
+                for changed_submission_id in changed_task_results:
+                    self.proxy_service.submission_scored(
+                        submission_id=changed_submission_id)
 
 
 class ScoringService(TriggeredService):
