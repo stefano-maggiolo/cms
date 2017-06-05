@@ -3,6 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2011-2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -112,21 +113,9 @@ class Score(object):
             self._submissions[s_id].extra = change.extra
         if self._submissions[s_id].token:
             self._released.insert(self._submissions[s_id].score)
-        if change.score is not None and \
-                (self._last is None or
-                 self._submissions[s_id].time > self._last.time):
-            self._last = self._submissions[s_id]
 
-        if self._score_mode == "max":
-            score = max([0.0] +
-                        [submission.score
-                         for submission in self._submissions.values()])
-        else:
-            score = max(self._released.query(),
-                        self._last.score if self._last is not None else 0.0)
-
-        if score != self.get_score():
-            self._history.append((change.time, score))
+        if change.task_score != self.get_score():
+            self._history.append((change.time, change.task_score))
 
     def get_score(self):
         return self._history[-1][1] if len(self._history) > 0 else 0.0

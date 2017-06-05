@@ -381,6 +381,35 @@ class SubmissionResult(Base):
         String,
         nullable=True)
 
+    # Task current score as computed by ScoringService.
+    task_score = Column(
+        Float,
+        nullable=True)
+
+    # Task score details. It's a JSON-encoded string containing information
+    # that is given to ScoreType.get_total_score_html_details to generate an HTML
+    # snippet that is shown on AWS and CWS to display the details.
+    # For example, results for each testcases, subtask, etc.
+    task_score_details = Column(
+        String,
+        nullable=True)
+
+    # The same as the last two fields, but only showing information
+    # visible to the user
+    task_public_score = Column(
+        Float,
+        nullable=True)
+    task_public_score_details = Column(
+        String,
+        nullable=True)
+
+    # Ranking score details. It is a list of strings that are going to
+    # be shown in a single row in the table of submission in RWS. JSON
+    # encoded.
+    task_ranking_score_details = Column(
+        String,
+        nullable=True)
+
     # Follows the description of the fields automatically added by
     # SQLAlchemy.
     # executables (dict of Executable objects indexed by filename)
@@ -554,6 +583,12 @@ class SubmissionResult(Base):
         self.public_score = None
         self.public_score_details = None
         self.ranking_score_details = None
+
+        self.task_score = None
+        self.task_score_details = None
+        self.task_public_score = None
+        self.task_public_score_details = None
+        self.task_ranking_score_details = None
 
     def set_compilation_outcome(self, success):
         """Set the compilation outcome based on the success.

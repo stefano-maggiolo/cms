@@ -3,6 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2011-2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -48,6 +49,8 @@ class Subchange(Entity):
         self.score = None
         self.token = None
         self.extra = None
+        self.task_score = None
+        self.task_extra = None
 
     @staticmethod
     def validate(data):
@@ -75,6 +78,15 @@ class Subchange(Entity):
                 for i in data['extra']:
                     assert isinstance(i, six.text_type), \
                         "Field 'extra' isn't a list of strings"
+            if 'task_score' in data:
+                assert isinstance(data['task_score'], float), \
+                    "Field 'task_score' isn't a float"
+            if 'task_extra' in data:
+                assert isinstance(data['task_extra'], list), \
+                    "Field 'task_extra' isn't a list of strings"
+                for i in data['task_extra']:
+                    assert isinstance(i, six.text_type), \
+                        "Field 'task_extra' isn't a list of strings"
         except KeyError as exc:
             raise InvalidData("Field %s is missing" % exc.message)
         except AssertionError as exc:
@@ -87,11 +99,17 @@ class Subchange(Entity):
         self.score = (data['score'] if 'score' in data else None)
         self.token = (data['token'] if 'token' in data else None)
         self.extra = (data['extra'] if 'extra' in data else None)
+        self.task_score = (data['task_score']
+                           if 'task_score' in data
+                           else None)
+        self.task_extra = (data['task_extra']
+                           if 'task_extra' in data
+                           else None)
 
     def get(self):
         result = self.__dict__.copy()
         del result['key']
-        for field in ['score', 'token', 'extra']:
+        for field in ['score', 'token', 'extra', 'task_score', 'task_extra']:
             if result[field] is None:
                 del result[field]
         return result
