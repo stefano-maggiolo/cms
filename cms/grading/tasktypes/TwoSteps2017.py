@@ -134,9 +134,10 @@ class TwoSteps2017(TaskType):
         # task.submission_format. The following check shouldn't be
         # here, but in the definition of the task, since this actually
         # checks that task's task type and submission format agree.
-        if len(job.files) != 2:
+        if len(job.files) != 1:
             job.success = True
             job.compilation_success = False
+            job.plus = {}
             job.text = [N_("Invalid files in submission")]
             logger.error("Submission contains %d files, expecting 2",
                          len(job.files), extra={"operation": job.info})
