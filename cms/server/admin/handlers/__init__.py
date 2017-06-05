@@ -82,7 +82,7 @@ from .dataset import \
     DeleteManagerHandler, \
     AddTestcaseHandler, \
     AddTestcasesHandler, \
-    DeleteTestcasesHandler, \
+    DeleteTestcaseHandler, \
     DownloadTestcasesHandler
 from .user import \
     AddUserHandler, \
@@ -187,7 +187,7 @@ HANDLERS = [
     (r"/dataset/([0-9]+)/manager/([0-9]+)/delete", DeleteManagerHandler),
     (r"/dataset/([0-9]+)/testcases/add", AddTestcaseHandler),
     (r"/dataset/([0-9]+)/testcases/add_multiple", AddTestcasesHandler),
-    (r"/dataset/([0-9]+)/testcases/delete", DeleteTestcasesHandler),
+    (r"/dataset/([0-9]+)/testcase/([0-9]+)/delete", DeleteTestcaseHandler),
     (r"/dataset/([0-9]+)/testcases/download", DownloadTestcasesHandler),
 
     # Users/Teams

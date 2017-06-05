@@ -545,42 +545,27 @@ class AddTestcasesHandler(BaseHandler):
         self.redirect(self.url("task", task.id))
 
 
-class DeleteTestcasesHandler(BaseHandler):
-    """Delete several testcases.
+class DeleteTestcaseHandler(BaseHandler):
+    """Delete a testcase.
 
     """
     @require_permission(BaseHandler.PERMISSION_ALL)
-    def delete(self, dataset_id):
-        testcase_json = self.get_argument('selected_testcases', None)
+    def delete(self, dataset_id, testcase_id):
+        testcase = self.safe_get_item(Testcase, testcase_id)
+        dataset = self.safe_get_item(Dataset, dataset_id)
 
-        # Protect against requests providing incompatible parameters.
-        if testcase_json is None:
+        # Protect against URLs providing incompatible parameters.
+        if dataset is not testcase.dataset:
             raise tornado.web.HTTPError(404)
 
-        dataset = self.safe_get_item(Dataset, dataset_id)
-        testcase_list = json.loads(testcase_json)
-        task_id = -1
-        for testcase_id in testcase_list:
-            # Protect against requests providing incompatible parameters.
-            if not testcase_id:
-                continue
+        task_id = testcase.dataset.task_id
 
-            testcase = self.safe_get_item(Testcase, testcase_id)
+        self.sql_session.delete(testcase)
 
-            # Protect against requests providing incompatible parameters.
-            if dataset is not testcase.dataset:
-                raise tornado.web.HTTPError(404)
-
-            task_id = testcase.dataset.task_id
-
-            self.sql_session.delete(testcase)
-
-            if self.try_commit():
-                # max_score and/or extra_headers might have changed.
-                self.application.service.proxy_service.reinitialize()
-
-        if task_id != -1:
-            self.write("./%d" % task_id)
+        if self.try_commit():
+            # max_score and/or extra_headers might have changed.
+            self.application.service.proxy_service.reinitialize()
+        self.write("./%d" % task_id)
 
 
 class DownloadTestcasesHandler(FileHandler):
