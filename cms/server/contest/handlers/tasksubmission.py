@@ -347,6 +347,15 @@ class SubmitHandler(ContestHandler):
         # RPCs.
         username = participation.user.username
         submission_id = submission.id
+        logger.metric(
+            "submission_added",
+            submission_id=submission.id,
+            language=submission.language,
+            task_id=task.id,
+            participant_id=participation.id,
+            value=1
+        )
+
         self.sql_session.close()
 
         random_service(self.application.service.evaluation_services)\
@@ -358,15 +367,6 @@ class SubmitHandler(ContestHandler):
             self._("Your submission has been received "
                    "and is currently being evaluated."),
             NOTIFICATION_SUCCESS)
-
-        logger.metric(
-            "submission_added",
-            submission_id=submission.id,
-            language=submission.language,
-            task_id=task.id,
-            participant_id=participation.id,
-            value=1
-        )
 
         # The argument (encripted submission id) is not used by CWS
         # (nor it discloses information to the user), but it is useful
