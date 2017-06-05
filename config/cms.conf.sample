@@ -21,7 +21,9 @@
         "ResourceService":   [["localhost", 28000]],
         "ScoringService":    [["localhost", 28500]],
         "Checker":           [["localhost", 22000]],
-        "EvaluationService": [["localhost", 25000]],
+        "EvaluationService": [["localhost", 25010],
+                              ["localhost", 25011]],
+        "QueueService":      [["localhost", 25000]],
         "Worker":            [["localhost", 26000],
                               ["localhost", 26001],
                               ["localhost", 26002],
@@ -50,6 +52,14 @@
     "_help": "Whether to use two-phase commit.",
     "twophase_commit": false,
 
+
+    "_section": "Analytics",
+
+    "_help": "Whether to enable analytics.",
+    "monitor_enabled": true,
+
+    "_help": "Connection string for the metric server.",
+    "metric_server": "http://localhost:8086/write?db=cms",
 
 
     "_section": "Worker",

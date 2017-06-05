@@ -6,6 +6,7 @@
 # Copyright © 2010-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -34,7 +35,7 @@ import logging
 from collections import deque
 
 from cms import config, mkdir
-from cms.log import root_logger, shell_handler, FileHandler, DetailedFormatter
+from cms.log import root_logger, FileHandler, DetailedFormatter, MetricHandler
 from cms.io import Service, rpc_method
 
 
@@ -66,6 +67,11 @@ class LogService(Service):
         self.file_handler.setLevel(logging.DEBUG)
         self.file_handler.setFormatter(DetailedFormatter(False))
         root_logger.addHandler(self.file_handler)
+
+        if config.monitor_enabled:
+            self.metric_handler = MetricHandler(config.metric_server)
+            self.metric_handler.setLevel(logging.getLevelName("METRIC"))
+            root_logger.addHandler(self.metric_handler)
 
         # Provide a symlink to the latest log file.
         try:
@@ -102,11 +108,7 @@ class LogService(Service):
         """
         record = logging.makeLogRecord(kwargs)
 
-        # Show in stdout, together with the messages we produce
-        # ourselves.
-        shell_handler.handle(record)
-        # Write on the global log file.
-        self.file_handler.handle(record)
+        root_logger.callHandlers(record)
 
         if record.levelno >= logging.WARNING:
             if hasattr(record, "service_name") and \

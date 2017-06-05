@@ -6,6 +6,7 @@
 # Copyright © 2013-2015 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2013-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -44,7 +45,7 @@ import logging
 from cms.db import File, Manager, Executable, UserTestExecutable, Evaluation
 from cms.grading.languagemanager import get_language
 from cms.service.esoperations import ESOperation
-
+from cmscommon.datetime import make_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -570,6 +571,18 @@ class EvaluationJob(Job):
             evaluation_sandbox=":".join(self.sandboxes),
             testcase=sr.dataset.testcases[
                 self.operation["testcase_codename"]])]
+
+        submission = sr.submission
+        logger.metric(
+            "submission_one_testcase_evaluation_time",
+            submission_id=submission.id,
+            testcase_codename=self.operation["testcase_codename"],
+            dataset_id=sr.dataset_id,
+            language=submission.language,
+            task=submission.task_id,
+            participant=submission.participation_id,
+            value=(make_datetime() - submission.timestamp).total_seconds()
+        )
 
     @staticmethod
     def from_user_test(operation, user_test, dataset):

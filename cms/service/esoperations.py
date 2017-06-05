@@ -507,6 +507,7 @@ class ESOperation(QueueItem):
         self.object_id = object_id
         self.dataset_id = dataset_id
         self.testcase_codename = testcase_codename
+        self.job = None
 
     @staticmethod
     def from_dict(d):
@@ -514,6 +515,10 @@ class ESOperation(QueueItem):
                            d["object_id"],
                            d["dataset_id"],
                            d["testcase_codename"])
+
+    @staticmethod
+    def from_list(d):
+        return ESOperation(*d)
 
     def __eq__(self, other):
         # We may receive a non-ESOperation other when comparing with
@@ -560,5 +565,13 @@ class ESOperation(QueueItem):
             "type": self.type_,
             "object_id": self.object_id,
             "dataset_id": self.dataset_id,
-            "testcase_codename": self.testcase_codename
+            "testcase_codename": self.testcase_codename,
         }
+
+    def to_list(self):
+        return [
+            self.type_,
+            self.object_id,
+            self.dataset_id,
+            self.testcase_codename,
+        ]

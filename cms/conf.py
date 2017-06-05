@@ -8,6 +8,7 @@
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -65,6 +66,10 @@ class Config(object):
         self.database = "postgresql+psycopg2://cmsuser@localhost/cms"
         self.database_debug = False
         self.twophase_commit = False
+
+        # Analytics
+        self.monitor_enabled = False
+        self.metric_server = ""
 
         # Worker.
         self.keep_sandbox = True

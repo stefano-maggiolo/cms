@@ -7,6 +7,7 @@
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2015 Luca Versari <veluca93@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -50,8 +51,10 @@ from __future__ import unicode_literals
 
 import logging
 import sys
+import json
 
 import gevent.lock
+import grequests
 
 from cmscommon.terminal import colors, add_color_to_string, has_color_support
 
@@ -82,6 +85,53 @@ class FileHandler(logging.FileHandler):
 
         """
         self.lock = gevent.lock.RLock()
+
+
+class MetricHandler(logging.Handler):
+
+    def __init__(self, metric_server):
+        super(MetricHandler, self).__init__()
+        self.metric_server = metric_server
+
+    def createLock(self):
+        """Set self.lock to a semaphore
+
+        """
+        self.lock = gevent.lock.RLock()
+
+    def emit(self, record):
+        if record.levelno != logging.getLevelName("METRIC"):
+            return
+        try:
+            metric_data = json.loads(record.getMessage())
+            metric_name = metric_data.pop("metric_name")
+            value = metric_data.pop("value")
+            additional_tags = ["service_name", "service_shard"]
+            for tag in additional_tags:
+                tag_value = getattr(record, tag, None)
+                if tag_value is not None and tag not in metric_data:
+                    metric_data[tag] = tag_value
+            tags = ["%s=%s" % (str(a), str(b))
+                    for a, b in metric_data.iteritems()]
+            metric_id = ",".join([metric_name] + tags)
+            timestamp = int(record.created * 1000 * 1000 * 1000)
+
+            metric_data_string = "%s value=%s %s" % (
+                metric_id,
+                str(value),
+                str(timestamp)
+            )
+            normal_logger = logging.getLogger()
+            normal_logger.debug(metric_data_string)
+            request = grequests.post(
+                url=self.metric_server,
+                data=metric_data_string,
+            )
+            grequests.send(request)
+        except KeyError:
+            pass
+        except:
+            self.handleError(record)
 
 
 class LogServiceHandler(logging.Handler):
@@ -411,3 +461,20 @@ def set_detailed_logs(detailed):
     formatter = DetailedFormatter(color) \
         if detailed else CustomFormatter(color)
     shell_handler.setFormatter(formatter)
+
+
+METRIC_LOG_LEVEL = logging.INFO - 1
+logging.addLevelName(METRIC_LOG_LEVEL, "METRIC")
+
+
+def log_metric(self, metric_name, value, **tags):
+
+    if self.isEnabledFor(METRIC_LOG_LEVEL):
+        metric_info = {}
+        metric_info.update(tags)
+        metric_info['metric_name'] = metric_name
+        metric_info['value'] = value
+
+        self._log(METRIC_LOG_LEVEL, json.dumps(metric_info), args=[])
+
+logging.Logger.metric = log_metric

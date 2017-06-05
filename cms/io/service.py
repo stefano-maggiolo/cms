@@ -6,6 +6,7 @@
 # Copyright © 2010-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -48,7 +49,7 @@ from gevent.backdoor import BackdoorServer
 from cms import ConfigError, config, mkdir, ServiceCoord, Address, \
     get_service_address
 from cms.log import root_logger, shell_handler, ServiceFilter, \
-    DetailedFormatter, LogServiceHandler, FileHandler
+    DetailedFormatter, LogServiceHandler, FileHandler, MetricHandler
 from cmscommon.datetime import monotonic_time
 
 from .rpc import rpc_method, RemoteServiceServer, RemoteServiceClient, \
@@ -134,12 +135,20 @@ class Service(object):
                                    mode='w', encoding='utf-8')
         if config.file_log_debug:
             file_log_level = logging.DEBUG
+        elif config.monitor_enabled:
+            file_log_level = logging.getLevelName("METRIC")
         else:
             file_log_level = logging.INFO
         file_handler.setLevel(file_log_level)
         file_handler.setFormatter(DetailedFormatter(False))
         file_handler.addFilter(filter_)
         root_logger.addHandler(file_handler)
+
+        if config.monitor_enabled:
+            metric_handler = MetricHandler(config.metric_server)
+            metric_handler.setLevel(logging.getLevelName("METRIC"))
+            metric_handler.addFilter(filter_)
+            root_logger.addHandler(metric_handler)
 
         # Provide a symlink to the latest log file.
         try:
