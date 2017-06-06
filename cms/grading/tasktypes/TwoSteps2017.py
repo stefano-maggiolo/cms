@@ -211,11 +211,11 @@ class TwoSteps2017(TaskType):
         os.chmod(fifo_dir, 0o755)
         os.chmod(fifo, 0o666)
 
+        language = get_language(job.language)
         # First step: we start the first manager.
         first_filename = "manager"
-        first_command = job.\
-            language.get_evaluation_commands(
-                first_filename, main="grader", args=["1", fifo])
+        first_command = language.get_evaluation_commands(
+            first_filename, main="grader", args=["0", fifo])
         first_executables_to_get = {
             first_filename:
             job.executables[first_filename].digest
@@ -245,9 +245,8 @@ class TwoSteps2017(TaskType):
         # Second step: we start the second manager.
 
         second_filename = "manager"
-        second_command = job.\
-            language.get_evaluation_commands(
-                second_filename, main="grader", args=["1", fifo])
+        second_command = language.get_evaluation_commands(
+            first_filename, main="grader", args=["1", fifo])
         second_executables_to_get = {
             second_filename:
             job.executables[second_filename].digest
