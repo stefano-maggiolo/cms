@@ -858,7 +858,7 @@ class IsolateSandbox(SandboxBase):
 
         """
         for directory in dirs:
-            self.dirs = [(directory, None, "rw")] + self.dirs
+            self.dirs.append((directory, None, "rw"))
 
     def allow_writing_all(self):
         """Set permissions in such a way that any operation is allowed.
