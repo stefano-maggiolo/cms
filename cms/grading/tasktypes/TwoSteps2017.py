@@ -213,7 +213,9 @@ class TwoSteps2017(TaskType):
 
         # First step: we start the first manager.
         first_filename = "manager"
-        first_command = ["./%s" % first_filename, "0", fifo]
+        first_command = job.\
+            language.get_evaluation_commands(
+                first_filename, main="grader", args=["1", fifo])
         first_executables_to_get = {
             first_filename:
             job.executables[first_filename].digest
@@ -241,8 +243,11 @@ class TwoSteps2017(TaskType):
             wait=False)
 
         # Second step: we start the second manager.
+
         second_filename = "manager"
-        second_command = ["./%s" % second_filename, "1", fifo]
+        second_command = job.\
+            language.get_evaluation_commands(
+                second_filename, main="grader", args=["1", fifo])
         second_executables_to_get = {
             second_filename:
             job.executables[second_filename].digest
