@@ -216,6 +216,14 @@ class TwoSteps2017(TaskType):
         first_filename = "manager"
         first_command = language.get_evaluation_commands(
             first_filename, main="grader", args=["0", fifo])
+        if len(first_command) > 1:
+            job.success = False
+            logger.error("Language contains %d commands for "
+                         "evaluation, expecting 1",
+                         len(first_command), extra={"operation": job.info})
+            return
+        else:
+            first_command = first_command[0]
         first_executables_to_get = {
             first_filename:
             job.executables[first_filename].digest
@@ -246,7 +254,14 @@ class TwoSteps2017(TaskType):
 
         second_filename = "manager"
         second_command = language.get_evaluation_commands(
-            first_filename, main="grader", args=["1", fifo])
+            second_filename, main="grader", args=["1", fifo])
+        if len(second_command) > 1:
+            job.success = False
+            logger.error("Language contains %d commands for "
+                         "evaluation, expecting 1",
+                         len(second_command), extra={"operation": job.info})
+            return
+        second_command = second_command[0]
         second_executables_to_get = {
             second_filename:
             job.executables[second_filename].digest
