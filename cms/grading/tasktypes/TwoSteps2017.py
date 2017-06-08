@@ -153,12 +153,7 @@ class TwoSteps2017(TaskType):
         source_filenames.append(manager_filename)
         files_to_get[manager_filename] = \
             job.managers[manager_filename].digest
-        # Manager's header.
-        if header_ext is not None:
-            manager_filename = "grader%s" % header_ext
-            source_filenames.append(manager_filename)
-            files_to_get[manager_filename] = \
-                job.managers[manager_filename].digest
+
 
         # User's submissions and headers.
         for filename, file_ in job.files.iteritems():
