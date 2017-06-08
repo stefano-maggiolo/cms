@@ -102,9 +102,7 @@ class TwoSteps2017(TaskType):
             manager_source_filename = "grader%s" % source_ext
             source_filenames.append(manager_source_filename)
             # Manager's header.
-            if header_ext is not None:
-                manager_header_filename = "grader%s" % header_ext
-                source_filenames.append(manager_header_filename)
+
 
             for filename in submission_format:
                 source_filename = filename.replace(".%l", source_ext)
