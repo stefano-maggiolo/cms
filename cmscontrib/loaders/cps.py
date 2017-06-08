@@ -242,7 +242,7 @@ class CpsTaskLoader(TaskLoader):
 
         # Score Type
         subtasks_dir = os.path.join(self.path, 'subtasks')
-        subtasks = os.listdir(subtasks_dir)
+        subtasks = sorted(os.listdir(subtasks_dir))
 
         if len(subtasks) == 0:
             number_tests = len(testcase_codenames)
