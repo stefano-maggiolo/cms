@@ -22,6 +22,8 @@
 """
 import logging
 
+from cms.grading.TaskType import TaskType
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,7 +32,7 @@ def N_(message):
     return message
 
 
-class Notice(object):
+class Notice(TaskType):
 
     ACCEPTED_PARAMETERS = []
 
