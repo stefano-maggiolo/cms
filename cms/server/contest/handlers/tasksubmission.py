@@ -386,6 +386,9 @@ class TaskSubmissionsHandler(ContestHandler):
         except KeyError:
             raise tornado.web.HTTPError(404)
 
+        if len(task.submission_format) == 0:
+            raise tornado.web.HTTPError(404)
+
         submissions = self.sql_session.query(Submission)\
             .filter(Submission.participation == participation)\
             .filter(Submission.task == task)\

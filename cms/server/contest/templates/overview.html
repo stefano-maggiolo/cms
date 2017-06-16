@@ -192,39 +192,41 @@
     <tbody>
 {% set extensions = "[%s]" %  ("|".join(set(get_language(lang).source_extension for lang in contest.languages))) %}
 {% for t_iter in contest.tasks %}
-        <tr>
-            <th>{{ t_iter.name }}</th>
-            <td>{{ t_iter.title }}</td>
-            <td>
-    {% if t_iter.active_dataset.time_limit is not None %}
-        {% if t_iter.active_dataset.time_limit == 1.0 %}
-            {{ _("%(seconds)g second") % {"seconds": t_iter.active_dataset.time_limit} }}
-        {% else %}
-            {{ _("%(seconds)g seconds") % {"seconds": t_iter.active_dataset.time_limit} }}
-        {% end %}
-    {% else %}
-        {{ _("N/A") }}
+    {% if len(t_iter.submission_format) > 0 %}
+          <tr>
+              <th>{{ t_iter.name }}</th>
+              <td>{{ t_iter.title }}</td>
+              <td>
+      {% if t_iter.active_dataset.time_limit is not None %}
+          {% if t_iter.active_dataset.time_limit == 1.0 %}
+              {{ _("%(seconds)g second") % {"seconds": t_iter.active_dataset.time_limit} }}
+          {% else %}
+              {{ _("%(seconds)g seconds") % {"seconds": t_iter.active_dataset.time_limit} }}
+          {% end %}
+      {% else %}
+          {{ _("N/A") }}
+      {% end %}
+              </td>
+              <td>
+      {% if t_iter.active_dataset.memory_limit is not None %}
+          {{ _("%(mb)d MiB") % {"mb": t_iter.active_dataset.memory_limit} }}
+      {% else %}
+          {{ _("N/A") }}
+      {% end %}
+              </td>
+              <td>{{ get_task_type(dataset=t_iter.active_dataset).name }}</td>
+              <td>{{ " ".join(a.filename.replace(".%l", extensions) for a in t_iter.submission_format) }}</td>
+      {% if tokens_contest != 0 and tokens_tasks != 0 %}
+              <td>
+          {% if t_iter.token_mode in ("finite", "infinite") %}
+              {{ _("Yes") }}
+          {% else %}
+              {{ _("No") }}
+          {% end %}
+              </td>
+      {% end %}
+          </tr>
     {% end %}
-            </td>
-            <td>
-    {% if t_iter.active_dataset.memory_limit is not None %}
-        {{ _("%(mb)d MiB") % {"mb": t_iter.active_dataset.memory_limit} }}
-    {% else %}
-        {{ _("N/A") }}
-    {% end %}
-            </td>
-            <td>{{ get_task_type(dataset=t_iter.active_dataset).name }}</td>
-            <td>{{ " ".join(a.filename.replace(".%l", extensions) for a in t_iter.submission_format) }}</td>
-    {% if tokens_contest != 0 and tokens_tasks != 0 %}
-            <td>
-        {% if t_iter.token_mode in ("finite", "infinite") %}
-            {{ _("Yes") }}
-        {% else %}
-            {{ _("No") }}
-        {% end %}
-            </td>
-    {% end %}
-        </tr>
 {% end %}
     </tbody>
 </table>
