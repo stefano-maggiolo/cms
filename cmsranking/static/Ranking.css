@@ -38,8 +38,12 @@ abbr {
 #LogoPanel {
     position: absolute;
     top: 24px;
-    left: 24px;
-    width: 200px;
+    left: 0;
+    width: 220px;
+}
+
+#LogoPanel img {
+    width: 100%;
 }
 
 #UpperPanel {
