@@ -355,6 +355,8 @@ class ProxyService(TriggeredService):
             tasks = dict()
 
             for task in contest.tasks:
+                if len(task.submission_format) == 0:
+                    continue
                 score_type = get_score_type(dataset=task.active_dataset)
                 tasks[encode_id(task.name)] = {
                     "short_name": task.name,
