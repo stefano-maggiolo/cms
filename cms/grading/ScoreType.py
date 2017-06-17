@@ -223,7 +223,6 @@ class ScoreTypeGroup(ScoreTypeAlone):
     TEMPLATE = """\
 {% from cms.grading import format_status_text %}
 {% from cms.server import format_size %}
-{% set idx = 0 %}
 {% for st in details %}
     {% if "score" in st and "max_score" in st %}
         {% if st["score"] >= st["max_score"] %}
@@ -262,43 +261,58 @@ class ScoreTypeGroup(ScoreTypeAlone):
                 </tr>
             </thead>
             <tbody>
+    {% set failed = 0 %}
+    {% set idx = 0 %}
     {% for tc in st["testcases"] %}
         {% set idx = idx + 1 %}
-        {% if "outcome" in tc and "text" in tc %}
-            {% if tc["outcome"] == "Correct" %}
-                <tr class="correct">
-            {% elif tc["outcome"] == "Not correct" %}
-                <tr class="notcorrect">
+        {% if failed == 0 %}
+            {% if "outcome" in tc and "text" in tc %}
+                {% if tc["outcome"] != "Correct" %}
+                    {% set failed = 1 %}
+                    {% if tc["outcome"] == "Not correct" %}
+                        <tr class="notcorrect">
+                    {% else %}
+                        <tr class="partiallycorrect">
+                    {% end %}
+                            <td class="idx">{{ idx }}</td>
+                            <td class="outcome">{{ _(tc["outcome"]) }}</td>
+                            <td class="details">
+                              {{ format_status_text(tc["text"], _) }}
+                            </td>
+                            <td class="execution-time">
+                    {% if "time" in tc and tc["time"] is not None %}
+                                {{ _("%(seconds)0.3f s") % {
+                                    'seconds': tc["time"]
+                                } }}
+                    {% else %}
+                                {{ _("N/A") }}
+                    {% end %}
+                            </td>
+                            <td class="memory-used">
+                    {% if "memory" in tc and tc["memory"] is not None %}
+                                {{ format_size(tc["memory"]) }}
+                    {% else %}
+                                {{ _("N/A") }}
+                    {% end %}
+                            </td>
+                        </tr>
+                {% end %}
             {% else %}
-                <tr class="partiallycorrect">
+                    {% set failed = 1 %}
+                    <tr class="undefined">
+                        <td colspan="5">
+                             {{ _("N/A") }}
+                        </td>
+                    </tr>
             {% end %}
-                    <td class="idx">{{ idx }}</td>
-                    <td class="outcome">{{ _(tc["outcome"]) }}</td>
-                    <td class="details">
-                      {{ format_status_text(tc["text"], _) }}
-                    </td>
-                    <td class="execution-time">
-            {% if "time" in tc and tc["time"] is not None %}
-                        {{ _("%(seconds)0.3f s") % {'seconds': tc["time"]} }}
-            {% else %}
-                        {{ _("N/A") }}
-            {% end %}
-                    </td>
-                    <td class="memory-used">
-            {% if "memory" in tc and tc["memory"] is not None %}
-                        {{ format_size(tc["memory"]) }}
-            {% else %}
-                        {{ _("N/A") }}
-            {% end %}
-                    </td>
-                </tr>
-        {% else %}
-                <tr class="undefined">
-                    <td colspan="5">
-                        {{ _("N/A") }}
-                    </td>
-                </tr>
         {% end %}
+    {% end %}
+    {% if failed == 0 %}
+        <tr class="correct">
+            <td colspan="5" class="outcome">
+                {{ _("All testcases passed") }}
+            </td>
+        </tr>
     {% end %}
             </tbody>
         </table>
