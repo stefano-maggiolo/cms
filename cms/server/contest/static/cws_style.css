@@ -634,6 +634,34 @@ td.token_rules p:last-child {
     line-height: 24px;
 }
 
+#submission_detail table.task_details {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#submission_detail table.task_details td, #submission_detail table.task_details th {
+    border: 1px solid black;
+    height: 24px;
+    line-height: 24px;
+    padding-left: 5px;
+}
+
+#submission_detail table.task_details td.subtask.undefined {
+    color: #AAA;
+}
+
+#submission_detail table.task_details td.subtask.correct {
+    background-color: hsla(120, 100%, 50%, 0.7);
+}
+
+#submission_detail table.task_details td.subtask.notcorrect {
+    background-color: hsla(0, 100%, 50%, 0.7);
+}
+
+#submission_detail table.task_details td.subtask.partiallycorrect {
+    background-color: hsla(60, 100%, 50%, 0.7);
+}
+
 #submission_detail .subtask.undefined .subtask-head .score {
     background-color: #babdb6;
 }
@@ -686,6 +714,18 @@ td.token_rules p:last-child {
     box-sizing: border-box;
     color: white;
     padding-left: 5px;
+}
+
+#submission_detail table.testcase-list tbody tr.correct td.outcome .outcome {
+    background-color: #4e9a06;
+}
+
+#submission_detail table.testcase-list tbody tr.notcorrect td.outcome .outcome {
+    background-color: #cc0000;
+}
+
+#submission_detail table.testcase-list tbody tr.partiallycorrect td.outcome .outcome {
+    background-color: #edd400;
 }
 
 #submission_detail table.testcase-list tbody tr.correct td.outcome .outcome {

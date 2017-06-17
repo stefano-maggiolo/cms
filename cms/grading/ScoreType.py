@@ -309,34 +309,53 @@ class ScoreTypeGroup(ScoreTypeAlone):
 {% from cms.grading import format_status_text %}
 {% from cms.server import format_size %}
 {% set idx = 0 %}
+<table class="task_details">
+    <thead>
+        <th></th>
+        {% for st in details %}
+            <th>
+                {{ _("Subtask %d") % st["idx"] }}
+            </th>
+        {% end %}
+    </thead>
+    <tbody>
+    <tr>
+        <td> {{ _("Your score") }} </td>
 {% for st in details %}
     {% if "score" in st and "max_score" in st %}
         {% if st["score"] >= st["max_score"] %}
-<div class="subtask correct">
+        <td class="subtask correct">
         {% elif st["score"] <= 0.0 %}
-<div class="subtask notcorrect">
+        <td class="subtask notcorrect">
         {% else %}
-<div class="subtask partiallycorrect">
+        <td class="subtask partiallycorrect">
         {% end %}
     {% else %}
-<div class="subtask undefined">
+        <td class="subtask undefined">
     {% end %}
-    <div class="subtask-head">
-        <span class="title">
-            {{ _("Subtask %d") % st["idx"] }}
-        </span>
     {% if "score" in st and "max_score" in st %}
-        <span class="score">
-            ({{ '%g' % round(st["score"], 2) }} / {{ st["max_score"] }})
-        </span>
+            {{ '%g' % round(st["score"], 2) }}
     {% else %}
-        <span class="score">
-            ({{ _("N/A") }})
-        </span>
+            {{ _("N/A") }}
     {% end %}
-    </div>
-</div>
-{% end %}"""
+{% end %}
+        </td>
+    </tr>
+    <tr>
+        <td> {{ _("Max score") }} </td>
+{% for st in details %}
+    <td>
+    {% if "score" in st and "max_score" in st %}
+            {{ st["max_score"] }}
+    {% else %}
+            {{ _("N/A") }}
+    {% end %}
+        </td>
+{% end %}
+    </tr>
+
+</table>
+"""
 
     def retrieve_target_testcases(self):
         """Return the list of the target testcases for each subtask.

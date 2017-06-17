@@ -119,6 +119,7 @@ class ScoringExecutor(Executor):
                 .filter(Submission.task_id == task.id) \
                 .filter(SubmissionResult.dataset_id == dataset.id) \
                 .filter(SubmissionResult.filter_scored())\
+                .order_by(Submission.timestamp.asc())\
                 .all()
 
             changed_task_results = []
