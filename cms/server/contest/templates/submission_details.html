@@ -5,6 +5,9 @@
 <div class="score_details">
 {% raw task_details %}
 </div>
+<span class="help-inline">
+  * {{ _("Only submissions sent before this submission are included.") }}
+</span>
 {% end %}
 <h3> {{ _("Evaluation details") }} </h3>
 {% if details is not None %}
