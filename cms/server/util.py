@@ -366,9 +366,9 @@ def format_datetime_smart(dt, timezone, locale=None):
     now = make_datetime().replace(tzinfo=utc).astimezone(timezone)
 
     if dt.date() == now.date():
-        return dt.strftime(_("%H:%M:%S"))
+        return dt.strftime(_("%H:%M:%S %Z"))
     else:
-        return dt.strftime(_("%Y-%m-%d %H:%M:%S"))
+        return dt.strftime(_("%Y-%m-%d %H:%M:%S %Z"))
 
 
 def get_score_class(score, max_score):
