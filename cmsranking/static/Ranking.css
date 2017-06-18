@@ -791,7 +791,7 @@ abbr {
 
 #Scoreboard_body tr td.score {
     opacity: 0.75;
-    border-radius: 5px;
+    color: white;
 }
 
 #Scoreboard_body tr td.score.sort_key {
