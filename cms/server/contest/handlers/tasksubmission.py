@@ -245,15 +245,15 @@ class SubmitHandler(ContestHandler):
         # the same programming language of the current one), and put
         # them in file_digests (since they are already in FS).
         file_digests = {}
-        if task_type.ALLOW_PARTIAL_SUBMISSION and \
-                last_submission_t is not None and \
-                (submission_lang is None or
-                 submission_lang == last_submission_t.language):
-            submission_lang = last_submission_t.language
-            for filename in required.difference(provided):
-                if filename in last_submission_t.files:
-                    file_digests[filename] = \
-                        last_submission_t.files[filename].digest
+        # if task_type.ALLOW_PARTIAL_SUBMISSION and \
+        #         last_submission_t is not None and \
+        #         (submission_lang is None or
+        #          submission_lang == last_submission_t.language):
+        #     submission_lang = last_submission_t.language
+        #     for filename in required.difference(provided):
+        #         if filename in last_submission_t.files:
+        #             file_digests[filename] = \
+        #                 last_submission_t.files[filename].digest
 
         # Throw an error if task needs a language, but we don't have
         # it or it is not allowed / recognized.
