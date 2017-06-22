@@ -425,7 +425,7 @@ abbr {
 #Scoreboard_body tr td.team img {
     display: block;
     max-width: 40px;
-    max-height: 20px;
+    max-height: 21px;
     margin: 0 auto;
     box-shadow: 0 0 2px 0 gray;
 }
@@ -792,6 +792,7 @@ abbr {
 #Scoreboard_body tr td.score {
     opacity: 0.75;
     color: white;
+    text-shadow: 1px 1px #000;
 }
 
 #Scoreboard_body tr td.score.sort_key {
