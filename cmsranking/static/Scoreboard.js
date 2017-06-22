@@ -240,7 +240,7 @@ var Scoreboard = new function () {
 
         if (user['team']) {
             result += " \
-    <td class=\"team\"><img src=\"" + Config.get_flag_url(user["team"]) + "\" title=\"" + DataStore.teams[user["team"]]["name"] + "\" /></td>";
+    <td class=\"team\"><img src=\"" + Config.get_flag_thumbnail_url(user["team"]) + "\" title=\"" + DataStore.teams[user["team"]]["name"] + "\" /></td>";
         } else {
             result += " \
     <td class=\"team\"></td>";
@@ -407,7 +407,7 @@ var Scoreboard = new function () {
         $row.children("td.l_name").text(user["l_name"]);
 
         if (user["team"]) {
-            $row.children(".team").html("<img src=\"" + Config.get_flag_url(user["team"]) + "\" title=\"" + DataStore.teams[user["team"]]["name"] + "\" />");
+            $row.children(".team").html("<img src=\"" + Config.get_flag_thumbnail_url(user["team"]) + "\" title=\"" + DataStore.teams[user["team"]]["name"] + "\" />");
         } else {
             $row.children(".team").text("");
         }

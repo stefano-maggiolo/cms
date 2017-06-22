@@ -54,6 +54,10 @@ var Config = new function () {
         return "flags/" + t_key;
     };
 
+    self.get_flag_thumbnail_url = function (t_key) {
+        return "flags/thumbnails/" + t_key;
+    };
+
     self.get_face_url = function (u_key) {
         return "faces/" + u_key;
     };

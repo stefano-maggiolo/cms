@@ -491,6 +491,9 @@ def main():
             '/flags': ImageHandler(
                 os.path.join(config.lib_dir, 'flags', '%(name)s'),
                 os.path.join(config.web_dir, 'img', 'flag.png')),
+            '/flags/thumbnails': ImageHandler(
+                os.path.join(config.lib_dir, 'flags', 'thumbnails', '%(name)s'),
+                os.path.join(config.web_dir, 'img', 'flag.png')),
         }), {'/': config.web_dir})
 
     servers = list()
