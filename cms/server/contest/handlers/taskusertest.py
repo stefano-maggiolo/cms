@@ -11,6 +11,7 @@
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2015-2016 William Di Luigi <williamdiluigi@gmail.com>
 # Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -598,14 +599,15 @@ class UserTestFileHandler(FileHandler):
         # for the language). To retrieve the right file, we need to
         # decode it to 'foo.%l'.
         stored_filename = filename
+        if user_test.language is not None:
+            extension = get_language(user_test.language).source_extension
+            stored_filename = re.sub(r'%s$' % extension, '.%l', filename)
 
         if stored_filename in user_test.files:
-            if user_test.language is not None:
-                extension = get_language(user_test.language).source_extension
-                stored_filename = re.sub(r'%s$' % extension, '.%l', filename)
+
             digest = user_test.files[stored_filename].digest
-        elif stored_filename in user_test.managers:
-            digest = user_test.managers[stored_filename].digest
+        elif filename in user_test.managers:
+            digest = user_test.managers[filename].digest
         else:
             raise tornado.web.HTTPError(404)
         self.sql_session.close()
