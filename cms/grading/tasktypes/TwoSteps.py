@@ -377,3 +377,6 @@ class TwoSteps(TaskType):
     def get_user_managers(self, unused_submission_format):
         """See TaskType.get_user_managers."""
         return ["manager.%l"]
+
+    def get_auto_managers(self):
+        return None
