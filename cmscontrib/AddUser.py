@@ -4,6 +4,7 @@
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2016 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2017 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -46,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 
 def add_user(first_name, last_name, username, password, method, is_hashed,
-             email, timezone, preferred_languages):
+             email, timezone, preferred_languages, overwrite=False):
     logger.info("Creating the user in the database.")
     pwd_generated = False
     if password is None:
@@ -71,13 +72,30 @@ def add_user(first_name, last_name, username, password, method, is_hashed,
                 email=email,
                 timezone=timezone,
                 preferred_languages=preferred_languages)
-    try:
-        with SessionGen() as session:
+
+    with SessionGen() as session:
+        if overwrite:
+            existing_user = session.query(User) \
+                .filter(User.username == username).first()
+            if existing_user is not None:
+                user = existing_user
+                user.first_name = first_name
+                user.last_name = last_name
+                user.username = username
+                if not pwd_generated:
+                    user.password = stored_password
+                else:
+                    pwd_generated = False
+                user.email = email or user.email
+                user.timezone = timezone or user.timezone
+                user.preferred_languages = preferred_languages or \
+                    user.preferred_languages
+        try:
             session.add(user)
             session.commit()
-    except IntegrityError:
-        logger.error("A user with the given username already exists.")
-        return False
+        except IntegrityError:
+            logger.error("A user with the given username already exists.")
+            return False
 
     logger.info("User added%s. "
                 "Use AddParticipation to add this user to a contest."
@@ -102,6 +120,9 @@ def main():
                         help="timezone of the user, e.g. Europe/London")
     parser.add_argument("-l", "--languages", action="store", type=utf8_decoder,
                         help="comma-separated list of preferred languages")
+    parser.add_argument("-o", "--overwrite", action="store_true",
+                        help="whether to overwrite a user with "
+                             "the same username")
     password_group = parser.add_mutually_exclusive_group()
     password_group.add_argument(
         "-p", "--plaintext-password", action="store", type=utf8_decoder,
@@ -120,12 +141,15 @@ def main():
 
     if args.hashed_password is not None and args.method is None:
         parser.error("hashed password given but no method specified")
-
+    if args.plaintext_password is not None:
+        password = args.plaintext_password
+    else:
+        password = args.hashed_password
     success = add_user(args.first_name, args.last_name, args.username,
-                       args.plaintext_password or args.hashed_password,
+                       password,
                        args.method or "plaintext",
                        args.hashed_password is not None, args.email,
-                       args.timezone, args.languages)
+                       args.timezone, args.languages, overwrite=args.overwrite)
     return 0 if success is True else 1
 
 
