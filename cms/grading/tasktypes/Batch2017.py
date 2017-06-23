@@ -23,7 +23,7 @@ from __future__ import unicode_literals
 
 import logging
 
-from .Batch import Batch
+from cms.grading.tasktypes.Batch import Batch
 
 logger = logging.getLogger(__name__)
 
