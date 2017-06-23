@@ -105,7 +105,7 @@ $(document).ready(function () {
                     <div class="controls">
                         <input type="file" class="input-xlarge"
                                id="input{{ idx }}" name="{{ filename }}"
-                               onchange="CMS.CWSUtils.filter_languages($('#language option'), $(this).parents('fieldset').find('input[type=file]').not('#input_file'))"/>
+                               onchange="CMS.CWSUtils.filter_languages($(this).parents('fieldset').find('#language option'), $(this).parents('fieldset').find('input[type=file]').not('#input_file'))"/>
                     </div>
                 </div>
 {% end %}
@@ -121,7 +121,7 @@ $(document).ready(function () {
 {% for lang in contest.languages %}
                             <option value="{{ lang }}">{{ lang }}</option>
 {% end %}
-                        <select>
+                        </select>
                     </div>
                 </div>
                 <div class="control-group">
