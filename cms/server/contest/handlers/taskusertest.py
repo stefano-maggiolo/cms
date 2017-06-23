@@ -598,11 +598,11 @@ class UserTestFileHandler(FileHandler):
         # for the language). To retrieve the right file, we need to
         # decode it to 'foo.%l'.
         stored_filename = filename
-        if user_test.language is not None:
-            extension = get_language(user_test.language).source_extension
-            stored_filename = re.sub(r'%s$' % extension, '.%l', filename)
 
         if stored_filename in user_test.files:
+            if user_test.language is not None:
+                extension = get_language(user_test.language).source_extension
+                stored_filename = re.sub(r'%s$' % extension, '.%l', filename)
             digest = user_test.files[stored_filename].digest
         elif stored_filename in user_test.managers:
             digest = user_test.managers[stored_filename].digest
