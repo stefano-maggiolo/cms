@@ -71,6 +71,8 @@ class Config(object):
         self.monitor_enabled = False
         self.metric_server = ""
 
+        self.sentry_server = None
+
         # Worker.
         self.keep_sandbox = True
         self.use_cgroups = True

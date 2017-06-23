@@ -21,3 +21,6 @@ pyyaml>=3.11,<3.12  # http://pyyaml.org/wiki/PyYAML
 # Only for printing:
 pycups>=1.9,<1.10  # https://pypi.python.org/pypi/pycups
 PyPDF2>=1.25,<1.26  # https://github.com/mstamy2/PyPDF2/blob/master/CHANGELOG
+
+
+raven

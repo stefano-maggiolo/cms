@@ -35,7 +35,7 @@ import logging
 from collections import deque
 
 from cms import config, mkdir
-from cms.log import root_logger, FileHandler, DetailedFormatter, MetricHandler
+from cms.log import root_logger, FileHandler, DetailedFormatter
 from cms.io import Service, rpc_method
 
 
@@ -67,11 +67,6 @@ class LogService(Service):
         self.file_handler.setLevel(logging.DEBUG)
         self.file_handler.setFormatter(DetailedFormatter(False))
         root_logger.addHandler(self.file_handler)
-
-        if config.monitor_enabled:
-            self.metric_handler = MetricHandler(config.metric_server)
-            self.metric_handler.setLevel(logging.getLevelName("METRIC"))
-            root_logger.addHandler(self.metric_handler)
 
         # Provide a symlink to the latest log file.
         try:

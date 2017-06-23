@@ -150,6 +150,15 @@ class Service(object):
             metric_handler.addFilter(filter_)
             root_logger.addHandler(metric_handler)
 
+        if config.sentry_server:
+            from raven.handlers.logging import SentryHandler
+            from raven.transport.gevent import GeventedHTTPTransport
+            from raven import Client
+            sentry_client = Client(config.sentry_server,
+                                   transport=GeventedHTTPTransport)
+            root_logger.addHandler(SentryHandler(sentry_client,
+                                                 level=logging.WARNING))
+
         # Provide a symlink to the latest log file.
         try:
             os.remove(os.path.join(log_dir, "last.log"))
