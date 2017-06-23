@@ -237,7 +237,11 @@ class ScoreTypeGroup(ScoreTypeAlone):
     {% end %}
     <div class="subtask-head">
         <span class="title">
+        {% if "title" in st %}
+            {{ st["title"] }}
+        {% else %}
             {{ _("Subtask %d") % st["idx"] }}
+        {% end %}
         </span>
     {% if "score" in st and "max_score" in st %}
         <span class="score">
@@ -328,7 +332,11 @@ class ScoreTypeGroup(ScoreTypeAlone):
         <th></th>
         {% for st in details %}
             <th>
+            {% if "title" in st %}
+                {{ st["title"] }}
+            {% else %}
                 {{ _("Subtask %d") % st["idx"] }}
+            {% end %}
             </th>
         {% end %}
     </thead>
@@ -431,7 +439,10 @@ class ScoreTypeGroup(ScoreTypeAlone):
             score += parameter[0]
             if all(self.public_testcases[idx] for idx in target):
                 public_score += parameter[0]
-            headers += ["Subtask %d (%g)" % (i + 1, parameter[0])]
+            if len(parameter) > 2:
+                headers += ["%s (%g)" % (str(parameter[2]), parameter[0])]
+            else:
+                headers += ["Subtask %d (%g)" % (i + 1, parameter[0])]
 
         return score, public_score, headers
 
@@ -474,19 +485,28 @@ class ScoreTypeGroup(ScoreTypeAlone):
                     public_testcases.append(testcases[-1])
                 else:
                     public_testcases.append({"idx": idx})
-            subtasks.append({
+
+            additional_subtask_info = dict()
+            if len(parameter) > 2:
+                additional_subtask_info["title"] = parameter[2]
+            subtask_dict = additional_subtask_info.copy()
+            subtask_dict.update({
                 "idx": st_idx + 1,
                 "score": st_score,
                 "max_score": parameter[0],
                 "testcases": testcases,
-                })
+            })
+
+            subtasks.append(subtask_dict)
             if st_public:
                 public_subtasks.append(subtasks[-1])
             else:
-                public_subtasks.append({
+                public_subtask_dict = additional_subtask_info
+                public_subtask_dict.update({
                     "idx": st_idx + 1,
                     "testcases": public_testcases,
-                    })
+                })
+                public_subtasks.append(public_subtask_dict)
 
             ranking_details.append("%g" % round(st_score, 2))
 
@@ -533,26 +553,37 @@ class ScoreTypeGroup(ScoreTypeAlone):
                                            for score in
                                            subtask_public_scores[st_idx]],
                                           parameter)
+            additional_subtask_info = dict()
+            if len(parameter) > 2:
+                additional_subtask_info["title"] = parameter[2]
+
+            subtask_dict = additional_subtask_info.copy()
             if st_score is not None:
-                subtasks.append({
+                subtask_dict.update({
                     "idx": st_idx + 1,
                     "score": st_score,
                     "max_score": parameter[0],
                 })
+                subtasks.append(subtask_dict)
             else:
-                subtasks.append({
+                subtask_dict.update({
                     "idx": st_idx + 1,
                 })
+                subtasks.append(subtask_dict)
             if st_public is not None:
-                public_subtasks.append({
+                public_subtask_dict = additional_subtask_info.copy()
+                public_subtask_dict.update({
                     "idx": st_idx + 1,
                     "score": st_public,
                     "max_score": parameter[0],
                 })
+                public_subtasks.append(public_subtask_dict)
             else:
-                public_subtasks.append({
+                public_subtask_dict = additional_subtask_info.copy()
+                public_subtask_dict.update({
                     "idx": st_idx + 1,
                 })
+                public_subtasks.append(public_subtask_dict)
             if st_score is not None:
                 ranking_details.append("%g" % round(st_score, 2))
             else:
