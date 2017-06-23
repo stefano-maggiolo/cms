@@ -390,3 +390,6 @@ class TwoSteps2017(TaskType):
     def get_user_managers(self, unused_submission_format):
         """See TaskType.get_user_managers."""
         return ["grader.%l"]
+
+    def get_auto_managers(self):
+        return None
