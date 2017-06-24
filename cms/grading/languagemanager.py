@@ -3,6 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2016-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -29,7 +30,8 @@ from cms import plugin_list
 __all__ = [
     "LANGUAGES",
     "HEADER_EXTS", "SOURCE_EXTS", "OBJECT_EXTS",
-    "get_language", "filename_to_language"
+    "get_language", "filename_to_language",
+    "filename_to_language_names"
 ]
 
 
@@ -64,14 +66,25 @@ def filename_to_language(filename):
         match.
 
     """
+    names = filename_to_language_names(filename)
+    return None if len(names) == 0 else get_language(names[0])
+
+
+def filename_to_language_names(filename):
+    """Return all of the languages inferred from the given filename.
+
+    filename (string): the file to test.
+
+    return (string): name of all languages matching the given filename
+    """
     ext_index = filename.rfind(".")
     if ext_index == -1:
-        return None
+        return []
     ext = filename[ext_index:]
     names = sorted([language.name
                     for language in LANGUAGES
                     if ext in language.source_extensions])
-    return None if len(names) == 0 else get_language(names[0])
+    return names
 
 
 def _load_languages():

@@ -884,6 +884,10 @@ td.token_rules p:last-child {
     margin-bottom: 20px;
 }
 
+.submit_test .additional-managers-template {
+    display: none;
+}
+
 .submit_test form {
     margin-bottom: 0;
 }

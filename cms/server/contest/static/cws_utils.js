@@ -360,9 +360,16 @@ CMS.CWSUtils.filter_languages = function(options, inputs) {
         for (i = 0; i < options.length; i++) {
             if ($(options[i]).attr('disabled') != 'disabled') {
                 options[i].selected = true;
+                $(options[i]).parent("select").change();
                 break;
             }
         }
     }
 };
 
+CMS.CWSUtils.filter_additional_managers = function(placeholder, templates, language) {
+    var template_id = '\'[data-lang="'.concat(language).concat('"]\'');
+    var template_list = $(templates).filter(template_id)[0];
+
+    $(placeholder).html($(template_list).html());
+};

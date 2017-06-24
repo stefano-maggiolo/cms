@@ -46,7 +46,8 @@ from sqlalchemy import func
 
 from cms import config, random_service
 from cms.db import Task, UserTest, UserTestFile, UserTestManager
-from cms.grading.languagemanager import get_language
+from cms.grading.languagemanager import get_language, filename_to_language, \
+    filename_to_language_names
 from cms.grading.tasktypes import get_task_type
 from cms.server import actual_phase_required, format_size, multi_contest
 from cmscommon.archive import Archive
@@ -232,9 +233,20 @@ class UserTestHandler(ContestHandler):
             self._send_error(self._("Tests too frequent!"), error.message)
             return
 
+        submission_lang = self.get_argument("language", None)
+
+        required_managers = [
+            name
+            for name in task_type.get_user_managers(task.submission_format)
+            if name.endswith(".%l") or
+            filename_to_language(name) is None or
+            submission_lang in filename_to_language_names(name)
+        ]
+        print(required_managers)
+
         # Required files from the user.
         required = set([sfe.filename for sfe in task.submission_format] +
-                       task_type.get_user_managers(task.submission_format) +
+                       required_managers +
                        ["input"])
 
         # Ensure that the user did not submit multiple files with the
@@ -304,7 +316,6 @@ class UserTestHandler(ContestHandler):
         # integrate it with the language fetched from the previous
         # submission (if we use it) and later make sure it is
         # recognized and allowed.
-        submission_lang = self.get_argument("language", None)
         need_lang = any(our_filename.find(".%l") != -1
                         for our_filename in files)
 
@@ -406,7 +417,7 @@ class UserTestHandler(ContestHandler):
             digest = file_digests[filename]
             self.sql_session.add(
                 UserTestFile(filename, digest, user_test=user_test))
-        for filename in task_type.get_user_managers(task.submission_format):
+        for filename in required_managers:
             digest = file_digests[filename]
             if submission_lang is not None:
                 extension = get_language(submission_lang).source_extension

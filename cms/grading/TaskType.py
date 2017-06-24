@@ -185,7 +185,7 @@ class TaskType(object):
         """
         raise NotImplementedError("Please subclass this class.")
 
-    def get_user_managers(self):
+    def get_user_managers(self, unused_submission_format):
         """Return the managers that must be provided by the user when
         requesting a user test.
 

@@ -12,6 +12,18 @@ $(document).on("click", ".user_test_list tbody tr td.status .details", function 
     modal.modal("show");
 });
 
+$(document).on("change", "select#language", function (event) {
+  CMS.CWSUtils.filter_additional_managers(
+    $(this).parents('fieldset').find('#additional-managers')[0],
+    $(this).parents('.submit_test').find('.additional-managers-template'),
+    $(this).val());
+});
+
+$(document).on("ready", function (event) {
+  $("select#language").change();
+});
+
+
 update_user_test_row = function (task_id, user_test_id, data) {
     var row = $(".user_test_list[data-task=\"" + task_id + "\"] tbody tr[data-user-test=\"" + user_test_id + "\"]");
     row.attr("data-status", data["status"]);
@@ -59,6 +71,7 @@ $(document).ready(function () {
 {% block core %}
 
 {% from cms.grading.tasktypes import get_task_type %}
+{% from cms.grading.languagemanager import get_language, filename_to_language, filename_to_language_names %}
 
 {% if actual_phase == 0 or current_user.unrestricted %}
 
@@ -94,21 +107,51 @@ $(document).ready(function () {
     </div>
 {% end %}
 
+
 <div class="submit_test row">
+{% for lang in contest.languages %}
+    <div class="additional-managers-template" data-lang="{{ lang }}">
+  {% set specific_user_managers = [
+    name
+    for name in task_type.get_user_managers(task.submission_format)
+    if lang in filename_to_language_names(name)
+  ] %}
+{% for idx, filename in enumerate(specific_user_managers) %}
+        <div class="control-group">
+            <label class="control-label" for="specific_input{{ idx }}">{{ filename.replace(".%l", "") }}</label>
+            <div class="controls">
+                <input type="file" class="input-xlarge"
+                       id="specific_input{{ idx }}" name="{{ filename }}"
+                       onchange="CMS.CWSUtils.filter_languages($(this).parents('fieldset').find('#language option'), $(this).parents('fieldset').find('input[type=file]').not('#input_file'))"/>
+            </div>
+        </div>
+{% end %}
+    </div>
+{% end %}
+{% set common_user_managers = [
+  name
+  for name in task_type.get_user_managers(task.submission_format)
+  if name.endswith(".%l") or
+  filename_to_language(name) is None
+] %}
     <div class="span5">
         <form class="form-horizontal" enctype="multipart/form-data" action="{{ contest_url("tasks", task.name, "test") }}" method="POST">
             {% module xsrf_form_html() %}
             <fieldset>
-{% for idx, filename in enumerate([x.filename for x in task.submission_format] + task_type.get_user_managers(task.submission_format)) %}
-                <div class="control-group">
-                    <label class="control-label" for="input{{ idx }}">{{ filename.replace(".%l", "") }}</label>
-                    <div class="controls">
-                        <input type="file" class="input-xlarge"
-                               id="input{{ idx }}" name="{{ filename }}"
-                               onchange="CMS.CWSUtils.filter_languages($(this).parents('fieldset').find('#language option'), $(this).parents('fieldset').find('input[type=file]').not('#input_file'))"/>
+                <div id="common-managers">
+{% for idx, filename in enumerate([x.filename for x in task.submission_format] + common_user_managers) %}
+                    <div class="control-group">
+                        <label class="control-label" for="input{{ idx }}">{{ filename.replace(".%l", "") }}</label>
+                        <div class="controls">
+                            <input type="file" class="input-xlarge"
+                                   id="input{{ idx }}" name="{{ filename }}"
+                                   onchange="CMS.CWSUtils.filter_languages($(this).parents('fieldset').find('#language option'), $(this).parents('fieldset').find('input[type=file]').not('#input_file'))"/>
+                        </div>
                     </div>
-                </div>
 {% end %}
+                </div>
+                <div id="additional-managers">
+                </div>
                 <div class="control-group">
                     <label class="control-label" for="input_file">{{ _("input") }}</label>
                     <div class="controls">
