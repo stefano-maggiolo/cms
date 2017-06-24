@@ -22,13 +22,31 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
+import json
 
+from cms.grading.ParameterTypes import ParameterTypeString
 from cms.grading.tasktypes.Batch import Batch
 
 logger = logging.getLogger(__name__)
 
 
 class Batch2017(Batch):
+
+    _USER_MANAGERS = ParameterTypeString(
+        "User managers",
+        "user_managers",
+        "a JSON-encoded list of managers that should be provided by user when testing. "
+    )
+
+    ACCEPTED_PARAMETERS = Batch.ACCEPTED_PARAMETERS + [_USER_MANAGERS]
+
     def get_user_managers(self, unused_submission_format):
         """See TaskType.get_user_managers."""
-        return ["grader.%l"]
+        if self._uses_grader():
+            try:
+                user_managers = json.loads(self.parameters[3])
+            except ValueError:
+                user_managers = []
+            return user_managers
+        else:
+            return []

@@ -7,6 +7,7 @@
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2012-2013 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2016 Petar Veličković <pv273@cam.ac.uk>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -40,7 +41,7 @@ from cms.grading.languagemanager import LANGUAGES, get_language
 from cms.grading.TaskType import TaskType, \
     create_sandbox, delete_sandbox
 from cms.db import Executable
-
+from cms.grading.tasktypes.Batch import Batch
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,8 @@ class TwoSteps2017(TaskType):
         # Detect the submission's language. The checks about the
         # formal correctedness of the submission are done in CWS,
         # before accepting it.
+        if "user test" in job.info:
+            return Batch(parameters=["grader", ("", ""), self.parameters[0]]).compile(job, file_cacher)
         language = get_language(job.language)
         source_ext = language.source_extension
         header_ext = language.header_extension
@@ -196,6 +199,8 @@ class TwoSteps2017(TaskType):
     def evaluate(self, job, file_cacher):
         """See TaskType.evaluate."""
         # f stand for first, s for second.
+        if "user test" in job.info:
+            return Batch(parameters=["grader", ("", ""), self.parameters[0]]).evaluate(job, file_cacher)
         first_sandbox = create_sandbox(file_cacher, job.multithreaded_sandbox)
         second_sandbox = create_sandbox(file_cacher, job.multithreaded_sandbox)
         fifo_dir = tempfile.mkdtemp(dir=config.temp_dir)
