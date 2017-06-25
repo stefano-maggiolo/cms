@@ -369,7 +369,9 @@ class TwoSteps2017(TaskType):
                             success, _ = evaluation_step(
                                 second_sandbox,
                                 [["./%s" % TwoSteps2017.CHECKER_FILENAME,
-                                  "input.txt", "res.txt", "output.txt"]])
+                                  "input.txt", "res.txt", "output.txt"]],
+                                allow_dirs=second_allow_path
+                            )
                             if success:
                                 try:
                                     outcome, text = extract_outcome_and_text(

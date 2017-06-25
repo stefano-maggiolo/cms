@@ -6,6 +6,7 @@
 # Copyright © 2010-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -874,7 +875,12 @@ class IsolateSandbox(SandboxBase):
         """
         os.chmod(self.path, 0o755)
         for filename in os.listdir(self.path):
-            os.chmod(os.path.join(self.path, filename), 0o755)
+            full_path = os.path.join(self.path, filename)
+            try:
+                os.chmod(full_path, 0o755)
+            except OSError as e:
+                if (oct(os.stat(full_path).st_mode & 0o777)) != (oct(os.stat(full_path).st_mode & 0o755)):
+                    raise e
 
     def allow_writing_only(self, paths):
         """Set permissions in so that the user can write only some paths.
