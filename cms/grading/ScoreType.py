@@ -260,8 +260,6 @@ class ScoreTypeGroup(ScoreTypeAlone):
                     <th class="idx">{{ _("#") }}</th>
                     <th class="outcome">{{ _("Outcome") }}</th>
                     <th class="details">{{ _("Details") }}</th>
-                    <th class="execution-time">{{ _("Execution time") }}</th>
-                    <th class="memory-used">{{ _("Memory used") }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -278,26 +276,10 @@ class ScoreTypeGroup(ScoreTypeAlone):
                     {% else %}
                         <tr class="partiallycorrect">
                     {% end %}
-                            <td class="idx">{{ idx }}</td>
+                            <td class="idx">{{ _("Test") }} {{ idx }}</td>
                             <td class="outcome">{{ _(tc["outcome"]) }}</td>
                             <td class="details">
                               {{ format_status_text(tc["text"], _) }}
-                            </td>
-                            <td class="execution-time">
-                    {% if "time" in tc and tc["time"] is not None %}
-                                {{ _("%(seconds)0.3f s") % {
-                                    'seconds': tc["time"]
-                                } }}
-                    {% else %}
-                                {{ _("N/A") }}
-                    {% end %}
-                            </td>
-                            <td class="memory-used">
-                    {% if "memory" in tc and tc["memory"] is not None %}
-                                {{ format_size(tc["memory"]) }}
-                    {% else %}
-                                {{ _("N/A") }}
-                    {% end %}
                             </td>
                         </tr>
                 {% end %}

@@ -688,7 +688,7 @@ td.token_rules p:last-child {
 }
 
 #submission_detail table.testcase-list thead th.idx {
-    width: 5%;
+    width: 10%;
 }
 
 #submission_detail table.testcase-list thead th.outcome {

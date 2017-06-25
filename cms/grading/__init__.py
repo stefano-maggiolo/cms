@@ -141,9 +141,9 @@ COMPILATION_MESSAGES = MessageCollection([
                     "This might be caused by an excessive use of C++ "
                     "templates, for example.")),
     HumanMessage("signal",
-                 N_("Compilation killed with signal %s (could be triggered "
+                 N_("Compilation killed (could be triggered "
                     "by violating memory limits)"),
-                 N_("Your submission was killed with the specified signal. "
+                 N_("Your submission was killed. "
                     "Among other things, this might be caused by exceeding "
                     "the memory limit for the compilation, and in turn by an "
                     "excessive use of C++ templates, for example.")),
@@ -152,14 +152,14 @@ COMPILATION_MESSAGES = MessageCollection([
 
 EVALUATION_MESSAGES = MessageCollection([
     HumanMessage("success",
-                 N_("Output is correct"),
+                 N_("Correct"),
                  N_("Your submission ran and gave the correct answer")),
     HumanMessage("partial",
-                 N_("Output is partially correct"),
+                 N_("Partially Correct"),
                  N_("Your submission ran and gave the partially correct "
                     "answer")),
     HumanMessage("wrong",
-                 N_("Output isn't correct"),
+                 N_("Wrong Answer"),
                  N_("Your submission ran, but gave the wrong answer")),
     HumanMessage("nooutput",
                  N_("Evaluation didn't produce file %s"),
@@ -176,26 +176,19 @@ EVALUATION_MESSAGES = MessageCollection([
                     "visible in the submission details might be much smaller "
                     "than the time limit.")),
     HumanMessage("signal",
-                 N_("Execution killed with signal %d (could be triggered by "
+                 N_("Run-time error (could be triggered by "
                     "violating memory limits)"),
-                 N_("Your submission was killed with the specified signal. "
+                 N_("Your submission was killed. "
                     "Among other things, this might be caused by exceeding "
-                    "the memory limit. Note that if this is the reason, "
-                    "the memory usage visible in the submission details is "
-                    "the usage before the allocation that caused the "
-                    "signal.")),
+                    "the memory limit. ")),
     HumanMessage("syscall",
-                 N_("Execution killed because of forbidden syscall %s"),
+                 N_("Security Violation; Forbidden syscall %s"),
                  N_("Your submission was killed because it tried to use "
                     "the forbidden syscall specified in the message.")),
     HumanMessage("fileaccess",
-                 N_("Execution killed because of forbidden file access"),
+                 N_("Security Violation; Forbidden file access"),
                  N_("Your submission was killed because it tried to read "
                     "or write a forbidden file.")),
-    HumanMessage("returncode",
-                 N_("Execution failed because the return code was nonzero"),
-                 N_("Your submission failed because it exited with a return "
-                    "code different from 0.")),
 ])
 
 
@@ -606,7 +599,7 @@ def human_evaluation_message(plus):
         return [EVALUATION_MESSAGES.get("fileaccess").message]
     elif exit_status == Sandbox.EXIT_NONZERO_RETURN:
         # Don't tell which code: would be too much information!
-        return [EVALUATION_MESSAGES.get("returncode").message]
+        return [EVALUATION_MESSAGES.get("signal").message]
     elif exit_status == Sandbox.EXIT_OK:
         return None
     else:
