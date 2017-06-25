@@ -357,7 +357,7 @@ def compilation_step(sandbox, commands):
         success = True
         compilation_success = False
         plus["signal"] = signal
-        text = [COMPILATION_MESSAGES.get("signal").message, signal]
+        text = [COMPILATION_MESSAGES.get("signal").message]
 
     # Sandbox error: this isn't a user error, the administrator needs
     # to check the environment
