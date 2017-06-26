@@ -6,7 +6,9 @@
 
         <title>{% block title %}{% end %}</title>
 
-        <link rel="shortcut icon" href="{{ url("static", "favicon.ico") }}" />
+        <link rel="icon" href="{{ url("static", "icons", "cropped-Site-Icon-32x32.png") }}" sizes="32x32" />
+        <link rel="icon" href="{{ url("static", "icons", "cropped-Site-Icon-192x192.png") }}" sizes="192x192" />
+        <link rel="apple-touch-icon-precomposed" href="{{ url("static", "icons", "cropped-Site-Icon-180x180.png") }}" />
         <link rel="stylesheet" href="{{ url("static", "css", "bootstrap.css") }}">
         <link rel="stylesheet" href="{{ url("static", "cws_style.css") }}">
 
