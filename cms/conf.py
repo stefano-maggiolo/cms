@@ -111,6 +111,7 @@ class Config(object):
         # necessary to change it.
         # [2] http://freedesktop.org/wiki/Software/shared-mime-info
         self.shared_mime_info_prefix = "/usr"
+        self.communication_email_notification = None
 
         # AdminWebServer.
         self.admin_listen_address = ""

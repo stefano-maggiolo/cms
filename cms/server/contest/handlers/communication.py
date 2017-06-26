@@ -32,6 +32,11 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from cms import config
+
 import logging
 
 import tornado.web
@@ -43,6 +48,35 @@ from .contest import ContestHandler, NOTIFICATION_ERROR, NOTIFICATION_SUCCESS
 
 
 logger = logging.getLogger(__name__)
+
+Sender = "IOI'2017 HTC <htc@ioi2017.org>"
+SMTP_Server = 'box.ioi2017.org'
+SMTP_User = 'htc@ioi2017.org'
+SMTP_Pass = 'ioihtc2017'
+
+
+def send_mail(subject, message, recipients):
+
+    if isinstance(recipients, str):
+        recipients = [recipients]
+
+    text_subtype = 'html'
+    msg = MIMEMultipart()
+    msg['From'] = Sender
+    msg['To'] = ",".join(recipients)
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(message, text_subtype))
+    mailserver = smtplib.SMTP(SMTP_Server, 587)
+    mailserver.ehlo()
+    # secure email with tls encryption
+    mailserver.starttls()
+    # re-identify as an encrypted connection
+    mailserver.ehlo()
+    mailserver.login(SMTP_User, SMTP_Pass)
+    mailserver.sendmail(Sender, recipients, msg.as_string())
+    mailserver.quit()
+    logger.info('Email sent to %s', ",".join(recipients))
 
 
 class CommunicationHandler(ContestHandler):
@@ -96,6 +130,9 @@ class QuestionHandler(ContestHandler):
 
         logger.info(
             "Question submitted by user %s.", participation.user.username)
+
+        if config.communication_email_notification:
+            send_mail('New Question Received', 'Please Check CMS.', config.communication_email_notification)
 
         # Add "All ok" notification.
         self.application.service.add_notification(
