@@ -70,7 +70,7 @@ class SubmitHandler(ContestHandler):
 
     def _send_error(self, subject, text):
         """Shorthand for sending a notification and redirecting."""
-        logger.warning("Sent error: `%s' - `%s'", subject, text)
+        logger.info("Sent error: `%s' - `%s'", subject, text)
         self.application.service.add_notification(
             self.current_user.user.username,
             self.timestamp,
