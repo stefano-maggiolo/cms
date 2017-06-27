@@ -204,7 +204,9 @@ class SubmitHandler(ContestHandler):
             unpacked_dir = archive.unpack()
             for name in archive.namelist():
                 filename = os.path.basename(name)
-                body = open(os.path.join(unpacked_dir, filename), "r").read()
+                if filename not in required:
+                    continue
+                body = open(os.path.join(unpacked_dir, name), "r").read()
                 self.request.files[filename] = [{
                     'filename': filename,
                     'body': body
