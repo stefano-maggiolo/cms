@@ -345,8 +345,6 @@ class ImageHandler(object):
         self.fallback = fallback
 
         self.router = Map([
-            Rule("/<name>.png", methods=["GET"], endpoint="get"),
-            Rule("/<name>.svg", methods=["GET"], endpoint="get"),
             Rule("/<name>", methods=["GET"], endpoint="get"),
         ], encoding_errors="strict")
 
@@ -360,6 +358,8 @@ class ImageHandler(object):
             endpoint, args = route.match()
         except HTTPException as exc:
             return exc
+
+        args["name"] = os.path.splitext(args["name"])[0]
 
         location = self.location % args
 
