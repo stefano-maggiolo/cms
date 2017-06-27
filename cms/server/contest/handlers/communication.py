@@ -131,7 +131,7 @@ class QuestionHandler(ContestHandler):
             "Question submitted by user %s.", participation.user.username)
 
         if config.email_notification:
-            send_mail('New Question Received', 'Please Check CMS.', config.communication_email_notification)
+            send_mail('New Question Received', 'Please Check CMS.', config.email_notification)
 
         # Add "All ok" notification.
         self.application.service.add_notification(

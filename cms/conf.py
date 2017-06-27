@@ -74,7 +74,7 @@ class Config(object):
         self.sentry_server = None
 
         # Email
-        self.email_notification = False
+        self.email_notification = None
         self.email_address = None
         self.email_sender = None
         self.email_username = None
