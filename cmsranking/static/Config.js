@@ -51,15 +51,15 @@ var Config = new function () {
     };
 
     self.get_flag_url = function (t_key) {
-        return "flags/" + t_key;
+        return "flags/" + t_key + ".svg";
     };
 
     self.get_flag_thumbnail_url = function (t_key) {
-        return "flags/thumbnails/" + t_key;
+        return "flags/thumbnails/" + t_key + ".png";
     };
 
     self.get_face_url = function (u_key) {
-        return "faces/" + u_key;
+        return "faces/" + u_key + ".svg";
     };
 
     self.get_submissions_url = function (u_key) {

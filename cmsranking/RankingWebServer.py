@@ -3,6 +3,7 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2011-2016 Luca Wehrstedt <luca.wehrstedt@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -344,6 +345,8 @@ class ImageHandler(object):
         self.fallback = fallback
 
         self.router = Map([
+            Rule("/<name>.png", methods=["GET"], endpoint="get"),
+            Rule("/<name>.svg", methods=["GET"], endpoint="get"),
             Rule("/<name>", methods=["GET"], endpoint="get"),
         ], encoding_errors="strict")
 
@@ -492,7 +495,8 @@ def main():
                 os.path.join(config.lib_dir, 'flags', '%(name)s'),
                 os.path.join(config.web_dir, 'img', 'flag.png')),
             '/flags/thumbnails': ImageHandler(
-                os.path.join(config.lib_dir, 'flags', 'thumbnails', '%(name)s'),
+                os.path.join(config.lib_dir, 'flags', 'thumbnails',
+                             '%(name)s'),
                 os.path.join(config.web_dir, 'img', 'flag.png')),
         }), {'/': config.web_dir})
 

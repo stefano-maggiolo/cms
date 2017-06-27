@@ -120,7 +120,7 @@ var TeamSearch = new function () {
 <div class=\"item\" data-team=\"" + t_id + "\"> \
     <label> \
         <input type=\"checkbox\"/> \
-        <img class=\"flag\" src=\"" + Config.get_flag_url(t_id) + "\" /> " + team['name'] + " \
+        <img class=\"flag\" src=\"" + Config.get_flag_thumbnail_url(t_id) + "\" /> " + team['name'] + " \
     </label> \
 </div>";
         }
