@@ -55,7 +55,7 @@ var Config = new function () {
     };
 
     self.get_flag_thumbnail_url = function (t_key) {
-        return "flags/thumbnails/" + t_key + ".png";
+        return "flags/thumbnails/" + t_key + ".svg";
     };
 
     self.get_face_url = function (u_key) {
