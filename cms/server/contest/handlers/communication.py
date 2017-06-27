@@ -49,13 +49,12 @@ from .contest import ContestHandler, NOTIFICATION_ERROR, NOTIFICATION_SUCCESS
 
 logger = logging.getLogger(__name__)
 
-Sender = "IOI'2017 HTC <htc@ioi2017.org>"
-SMTP_Server = 'box.ioi2017.org'
-SMTP_User = 'htc@ioi2017.org'
-SMTP_Pass = 'ioihtc2017'
-
 
 def send_mail(subject, message, recipients):
+    Sender = "{} <{}>".format(config.email_sender, config.email_address)
+    SMTP_Server = config.email_server
+    SMTP_User = config.email_username
+    SMTP_Pass = config.email_password
 
     if isinstance(recipients, str):
         recipients = [recipients]
@@ -131,7 +130,7 @@ class QuestionHandler(ContestHandler):
         logger.info(
             "Question submitted by user %s.", participation.user.username)
 
-        if config.communication_email_notification:
+        if config.email_notification:
             send_mail('New Question Received', 'Please Check CMS.', config.communication_email_notification)
 
         # Add "All ok" notification.

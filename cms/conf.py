@@ -73,6 +73,14 @@ class Config(object):
 
         self.sentry_server = None
 
+        # Email
+        self.email_notification = False
+        self.email_address = None
+        self.email_sender = None
+        self.email_username = None
+        self.email_password = None
+        self.email_server = None
+
         # Worker.
         self.keep_sandbox = True
         self.use_cgroups = True
@@ -111,7 +119,6 @@ class Config(object):
         # necessary to change it.
         # [2] http://freedesktop.org/wiki/Software/shared-mime-info
         self.shared_mime_info_prefix = "/usr"
-        self.communication_email_notification = None
 
         # AdminWebServer.
         self.admin_listen_address = ""
