@@ -1,0 +1,30 @@
+{% extends contest.html %}
+{% block core %}
+<div class="span9">
+
+{% from cms import config %}
+
+<div class="page-header">
+    <h1>{{ _("Call a staff") }}</h1>
+</div>
+
+<form class="form-horizontal" action="{{ contest_url("callstaff") }}" method="POST">
+  {% module xsrf_form_html() %}
+  <div class="well question_submit">
+    Type of request:
+    <select name="request_type" onchange="update_additional_comment(this);">
+      <option value="Restroom">Restroom</option>
+      <option value="Technical problem">Technical problem</option>
+      <option selected value="Other">Other</option>
+    </select>
+    <button type="submit" class="btn btn-primary">{{ _("Ask request") }}</button>
+    <div class="alternative_comment">
+      <br>
+      Details(optional):<br>
+      <textarea class="input-xlarge" name="comment_text" rows="5" maxlength="1000"></textarea>
+    </div>
+  </div>
+</form>
+
+</div>
+{% end %}

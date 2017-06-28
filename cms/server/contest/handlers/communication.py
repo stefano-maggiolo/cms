@@ -118,19 +118,23 @@ class CallHandler(ContestHandler):
     """
     @tornado.web.authenticated
     @multi_contest
-    def post(self):
-        participation = self.current_user
+    def get(self):
+        self.set_secure_cookie(self.contest.name + "_unread_count", "0")
+        self.render("call_a_staff.html", **self.r_params)
 
+    def post(self):
         # User can post only if we want.
         if not self.contest.allow_questions:
             raise tornado.web.HTTPError(404)
 
-        fallback_page = os.path.join(self.r_params["real_contest_root"],
-                                     "communication")
+        participation = self.current_user
+        fallback_page = self.url("callstaff")
+        request_type = self.get_argument("request_type", "")
+        additional_comment = self.get_argument("comment_text", "")
+
 
         ret = subprocess.call(['/home/peyman/contestRequestHandler.sh',
-                               'User %s wants to go WC!'
-                               % (participation.user.username),
+                               request_type, additional_comment,
                                str(participation.ip)])
 
         if ret == 0:
