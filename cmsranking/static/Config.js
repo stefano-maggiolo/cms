@@ -59,7 +59,7 @@ var Config = new function () {
     };
 
     self.get_face_url = function (u_key) {
-        return "faces/" + u_key + ".svg";
+        return "faces/" + u_key + ".jpg";
     };
 
     self.get_submissions_url = function (u_key) {
