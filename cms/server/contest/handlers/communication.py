@@ -168,12 +168,20 @@ class CallHandler(ContestHandler):
         request_type = self.get_argument("request_type", "")
         additional_comment = self.get_argument("comment_text", "")
 
-
-        ret = subprocess.call(['/home/peyman/contestRequestHandler.sh',
-                               request_type, additional_comment,
-                               str(participation.ip)])
-
-        if ret == 0:
+        try:
+            subprocess.check_call(['StaffRequest',
+                                   request_type, additional_comment,
+                                   str(participation.ip)])
+        except Exception as e:
+            self.application.service.add_notification(
+                participation.user.username,
+                self.timestamp,
+                self._("System failed"),
+                self._("The system has failed to deliver your request. "
+                       "Please raise your hand for contacting staffs."),
+                NOTIFICATION_ERROR)
+            logger.error(e, exc_info=e)
+        else:
             self.application.service.add_notification(
                 participation.user.username,
                 self.timestamp,
@@ -182,12 +190,5 @@ class CallHandler(ContestHandler):
                        "and staffs have been informed. Please wait "
                        "until a staff reaches you for further guidance."),
                 NOTIFICATION_SUCCESS)
-        else:
-            self.application.service.add_notification(
-                participation.user.username,
-                self.timestamp,
-                self._("System failed"),
-                self._("The system has failed to deliver your request. "
-                       "Please raise your hand for contacting staffs."),
-                NOTIFICATION_ERROR)
+
         self.redirect(fallback_page)

@@ -1,4 +1,17 @@
 {% extends contest.html %}
+
+{% block additional_js %}
+function update_additional_comment(e)
+{
+  var obj = $("#alternative_comment");
+  var option = $("#request_select").find(":selected");
+  if ($(option).data("comment") == "show")
+    obj.show();
+  else
+    obj.hide();
+}
+$(document).ready(update_additional_comment);
+{% end %}
 {% block core %}
 <div class="span9">
 
@@ -12,13 +25,13 @@
   {% module xsrf_form_html() %}
   <div class="well question_submit">
     Type of request:
-    <select name="request_type" onchange="update_additional_comment(this);">
-      <option value="Restroom">Restroom</option>
-      <option value="Technical problem">Technical problem</option>
-      <option selected value="Other">Other</option>
+    <select name="request_type" id="request_select" onchange="update_additional_comment(this)">
+      <option selected value="Restroom">Restroom</option>
+      <option data-comment="show" value="Technical problem">Technical problem</option>
+      <option data-comment="show" value="Other">Other</option>
     </select>
-    <button type="submit" class="btn btn-primary">{{ _("Ask request") }}</button>
-    <div class="alternative_comment">
+    <button type="submit" class="btn btn-primary">{{ _("Submit") }}</button>
+    <div id="alternative_comment" style="display: none">
       <br>
       Details(optional):<br>
       <textarea class="input-xlarge" name="comment_text" rows="5" maxlength="1000"></textarea>

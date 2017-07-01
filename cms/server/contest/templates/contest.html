@@ -48,14 +48,6 @@ $(document).ready(function () {
     setInterval(function() { utils.update_notifications(); }, 30000);
     $('#main').css('top', $('#navigation_bar').outerHeight());
 });
-function update_additional_comment(invoker)
-{
-  var obj = document.getElementsByClassName("alternative_comment")[0];
-  if (invoker.selectedIndex == 2 || invoker.selectedIndex == 1)
-    obj.style.display = "block";
-  else
-    obj.style.display = "none";
-}
     {% end%}
 
 {% block additional_js %}{% end %}
