@@ -10,6 +10,7 @@
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2015-2016 William Di Luigi <williamdiluigi@gmail.com>
+# Copyright © 2017 Peyman Jabbarzade Ganje <peyman.jabarzade@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -38,6 +39,8 @@ from email.mime.text import MIMEText
 from cms import config
 
 import logging
+import os
+import subprocess
 
 import tornado.web
 
@@ -142,4 +145,49 @@ class QuestionHandler(ContestHandler):
                    "notified when it is answered."),
             NOTIFICATION_SUCCESS)
 
+        self.redirect(fallback_page)
+
+
+class CallHandler(ContestHandler):
+    """Called when the user Call staff.
+
+    """
+    @tornado.web.authenticated
+    @multi_contest
+    def get(self):
+        self.set_secure_cookie(self.contest.name + "_unread_count", "0")
+        self.render("call_a_staff.html", **self.r_params)
+
+    def post(self):
+        # User can post only if we want.
+        if not self.contest.allow_questions:
+            raise tornado.web.HTTPError(404)
+
+        participation = self.current_user
+        fallback_page = self.url("callstaff")
+        request_type = self.get_argument("request_type", "")
+        additional_comment = self.get_argument("comment_text", "")
+
+
+        ret = subprocess.call(['/home/peyman/contestRequestHandler.sh',
+                               request_type, additional_comment,
+                               str(participation.ip)])
+
+        if ret == 0:
+            self.application.service.add_notification(
+                participation.user.username,
+                self.timestamp,
+                self._("Request received"),
+                self._("Your request has been received "
+                       "and staffs have been informed. Please wait "
+                       "until a staff reaches you for further guidance."),
+                NOTIFICATION_SUCCESS)
+        else:
+            self.application.service.add_notification(
+                participation.user.username,
+                self.timestamp,
+                self._("System failed"),
+                self._("The system has failed to deliver your request. "
+                       "Please raise your hand for contacting staffs."),
+                NOTIFICATION_ERROR)
         self.redirect(fallback_page)

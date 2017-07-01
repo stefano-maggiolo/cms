@@ -48,6 +48,14 @@ $(document).ready(function () {
     setInterval(function() { utils.update_notifications(); }, 30000);
     $('#main').css('top', $('#navigation_bar').outerHeight());
 });
+function update_additional_comment(invoker)
+{
+  var obj = document.getElementsByClassName("alternative_comment")[0];
+  if (invoker.selectedIndex == 2 || invoker.selectedIndex == 1)
+    obj.style.display = "block";
+  else
+    obj.style.display = "none";
+}
     {% end%}
 
 {% block additional_js %}{% end %}
@@ -181,6 +189,9 @@ $(document).ready(function () {
                                     <span id="unread_count" class="label label-warning">{{ _("%d unread") % int(unread_count) }}</span>
     {% end %}
                                     </a>
+                            </li>
+                            <li{% if request.path == '/callstaff' %} class="active"{% end %}>
+                                <a href="{{ contest_url("callstaff") }}">{{ _("Call a staff") }}</a>
                             </li>
     {% if actual_phase == 0 or actual_phase == 3 or current_user.unrestricted %}
         {% for t_iter in contest.tasks %}
