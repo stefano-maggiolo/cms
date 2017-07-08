@@ -124,8 +124,14 @@ class ScoringExecutor(Executor):
                 .all()
 
             changed_task_results = []
+            official_submissions = [s for s in relevant_submissions
+                                    if s.submission.official]
+            official_ptr = 0
             for i in range(len(relevant_submissions)):
                 sr = relevant_submissions[i]
+                if official_ptr < len(official_submissions) and \
+                        sr == official_submissions[official_ptr]:
+                    official_ptr += 1
                 if sr.submission.timestamp >= submission.timestamp:
                     old_data = (sr.task_score,
                                 sr.task_score_details,
@@ -133,7 +139,9 @@ class ScoringExecutor(Executor):
                                 sr.task_public_score_details,
                                 sr.task_ranking_score_details)
                     new_data = score_type.\
-                        compute_total_score(relevant_submissions[:i + 1])
+                        compute_total_score(
+                            official_submissions[:official_ptr]
+                        )
                     new_data = new_data[:4] + (json.dumps(new_data[4]), )
                     if old_data != new_data:
                         sr.task_score, \

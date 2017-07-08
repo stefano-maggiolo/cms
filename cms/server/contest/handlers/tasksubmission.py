@@ -398,6 +398,13 @@ class TaskSubmissionsHandler(ContestHandler):
             .options(joinedload(Submission.results))\
             .all()
 
+        last_submission_result = None
+        for submission in submissions:
+            if submission.official:
+                sr = submission.get_result(task.active_dataset)
+                if sr is not None and sr.scored():
+                    last_submission_result = sr
+
         submissions_left_contest = None
         if self.contest.max_submission_number is not None:
             submissions_c = self.sql_session\
@@ -430,6 +437,7 @@ class TaskSubmissionsHandler(ContestHandler):
                     submissions_left=submissions_left,
                     submissions_download_allowed=
                         self.contest.submissions_download_allowed,
+                    last_submission_result=last_submission_result,
                     **self.r_params)
 
 

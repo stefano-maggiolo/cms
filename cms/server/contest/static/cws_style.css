@@ -112,6 +112,43 @@ div.page-header + h2 {
     margin: 0 0 15px;
 }
 
+div.page-header .task_score {
+    text-align: center;
+    border-radius: 10px;
+    line-height: 100%;
+    border: 1px solid hsla(200, 75%, 30%, 0.6);
+    margin: 5px 0;
+    padding: 5px 10px;
+    font-size: 15px;
+}
+
+div.page-header .task_score.undefined {
+    color: #AAA;
+}
+div.page-header .task_score.score_0 {
+    background-color: hsla(0, 100%, 50%, 0.4);
+}
+
+div.page-header:hover .task_score.score_0 {
+    background-color: hsla(0, 100%, 50%, 0.5);
+}
+
+div.page-header .task_score.score_0_100 {
+    background-color: hsla(60, 100%, 50%, 0.4);
+}
+
+div.page-header:hover .task_score.score_0_100 {
+    background-color: hsla(60, 100%, 50%, 0.5);
+}
+
+div.page-header .task_score.score_100 {
+    background-color: hsla(120, 100%, 50%, 0.4);
+}
+
+div.page-header:hover .task_score.score_100 {
+    background-color: hsla(120, 100%, 50%, 0.5);
+}
+
 /* Enhancements to the question form */
 
 div.question_submit form {
