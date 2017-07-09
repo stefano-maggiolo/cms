@@ -166,7 +166,6 @@ class CallHandler(ContestHandler):
         participation = self.current_user
         fallback_page = self.url("callstaff")
         request_type = self.get_argument("request_type", "")
-        additional_comment = self.get_argument("comment_text", "")
 
         try:
             if not config.print_system_address:
