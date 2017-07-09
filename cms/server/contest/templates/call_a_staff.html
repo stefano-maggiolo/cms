@@ -25,8 +25,9 @@ $(document).ready(update_additional_comment);
   {% module xsrf_form_html() %}
   <div class="well question_submit">
     Type of request:
-    <select name="request_type" id="request_select" onchange="update_additional_comment(this)">
+    <select name="request_type" id="request_select" onchange="update_additional_comment(this)" size="4">
       <option selected value="Restroom">Restroom</option>
+      <option value="Handwritten clarification">Handwritten clarification</option>
       <option data-comment="show" value="Technical problem">Technical problem</option>
       <option data-comment="show" value="Other">Other</option>
     </select>

@@ -39,8 +39,6 @@ from email.mime.text import MIMEText
 from cms import config
 
 import logging
-import os
-import subprocess
 import requests
 
 import tornado.web
@@ -135,7 +133,8 @@ class QuestionHandler(ContestHandler):
             "Question submitted by user %s.", participation.user.username)
 
         if config.email_notification:
-            send_mail('New Question Received', 'Please Check CMS.', config.email_notification)
+            send_mail('New Question Received', 'Please Check CMS.',
+                      config.email_notification)
 
         # Add "All ok" notification.
         self.application.service.add_notification(
@@ -170,9 +169,6 @@ class CallHandler(ContestHandler):
         additional_comment = self.get_argument("comment_text", "")
 
         try:
-            subprocess.check_call(['StaffRequest',
-                                   request_type, additional_comment,
-                                   str(participation.ip)])
             if not config.print_system_address:
                 raise Exception("Print System Address not set!")
             response = requests.post(
