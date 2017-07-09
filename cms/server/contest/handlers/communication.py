@@ -41,6 +41,7 @@ from cms import config
 import logging
 import os
 import subprocess
+import requests
 
 import tornado.web
 
@@ -172,6 +173,16 @@ class CallHandler(ContestHandler):
             subprocess.check_call(['StaffRequest',
                                    request_type, additional_comment,
                                    str(participation.ip)])
+            if not config.print_system_address:
+                raise Exception("Print System Address not set!")
+            response = requests.post(
+                '%s/cms_request' % config.print_system_address,
+                data={
+                    'request_message': request_type,
+                    'ip': str(participation.ip)
+                }
+            )
+            response.raise_for_status()
         except Exception as e:
             self.application.service.add_notification(
                 participation.user.username,
