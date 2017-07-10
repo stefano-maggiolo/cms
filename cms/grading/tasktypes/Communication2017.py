@@ -34,10 +34,10 @@ from cms.grading.Sandbox import wait_without_std, Sandbox
 from cms.grading import compilation_step, \
     human_evaluation_message, is_evaluation_passed, extract_outcome_and_text, \
     evaluation_step, evaluation_step_before_run, evaluation_step_after_run, \
-    merge_evaluation_results
+    merge_evaluation_results, white_diff_step
 from cms.grading.languagemanager import \
     LANGUAGES, HEADER_EXTS, SOURCE_EXTS, OBJECT_EXTS, get_language
-from cms.grading.ParameterTypes import ParameterTypeInt
+from cms.grading.ParameterTypes import ParameterTypeInt, ParameterTypeChoice
 from cms.grading.TaskType import TaskType, \
     create_sandbox, delete_sandbox
 from cms.db import Executable
@@ -78,7 +78,14 @@ class Communication2017(TaskType):
         "num_processes",
         "")
 
-    ACCEPTED_PARAMETERS = [_NUM_PROCESSES]
+    _EVALUATION = ParameterTypeChoice(
+        "Output evaluation",
+        "output_eval",
+        "",
+        {"diff": "Outputs compared with white diff",
+         "comparator": "Outputs are compared by a comparator"})
+
+    ACCEPTED_PARAMETERS = [_NUM_PROCESSES, _EVALUATION]
 
     def get_compilation_commands(self, submission_format):
         """See TaskType.get_compilation_commands."""
@@ -227,7 +234,9 @@ class Communication2017(TaskType):
             0,
             allow_dirs=manager_allow_dirs,
             writable_files=["output.txt"],
-            stdin_redirect="input.txt")
+            stdin_redirect="input.txt",
+            stdout_redirect="output.txt",
+        )
 
         # Second step: we start the user submission compiled with the
         # stub.
@@ -290,19 +299,110 @@ class Communication2017(TaskType):
         elif not is_evaluation_passed(plus_user):
             success = True
             outcome, text = 0.0, human_evaluation_message(plus_user)
+            if job.get_output:
+                job.user_output = None
         # Otherwise, we use the manager to obtain the outcome.
         else:
             success = True
-            outcome, text = extract_outcome_and_text(sandbox_mgr)
+            outcome = None
+            text = None
 
-        # If asked so, save the output file, provided that it exists
-        if job.get_output:
-            if sandbox_mgr.file_exists("output.txt"):
-                job.user_output = sandbox_mgr.get_file_to_storage(
-                    "output.txt",
-                    "Output file in job %s" % job.info)
+            input_filename = "input.txt"
+            output_filename = "output.txt"
+            # Check that the output file was created
+            if not sandbox_mgr.file_exists(output_filename):
+                outcome = 0.0
+                text = [N_("Evaluation didn't produce file %s"),
+                        output_filename]
+                if job.get_output:
+                    job.user_output = None
+
             else:
-                job.user_output = None
+                # If asked so, put the output file into the storage
+                if job.get_output:
+                    job.user_output = sandbox_mgr.get_file_to_storage(
+                        output_filename,
+                        "Output file in job %s" % job.info,
+                        trunc_len=100 * 1024)
+
+                # If just asked to execute, fill text and set dummy
+                # outcome.
+                if job.only_execution:
+                    outcome = 0.0
+                    text = [N_("Execution completed successfully")]
+
+                # Otherwise evaluate the output file.
+                else:
+
+                    # Put the reference solution into the sandbox
+                    sandbox_mgr.create_file_from_storage(
+                        "res.txt",
+                        job.output)
+
+                    # Check the solution with white_diff
+                    if self.parameters[1] == "diff":
+                        outcome, text = white_diff_step(
+                            sandbox_mgr, output_filename, "res.txt")
+
+                    # Check the solution with a comparator
+                    elif self.parameters[1] == "comparator":
+                        manager_filename = "checker"
+
+                        if manager_filename not in job.managers:
+                            logger.error("Configuration error: missing or "
+                                         "invalid comparator (it must be "
+                                         "named 'checker')",
+                                         extra={"operation": job.info})
+                            success = False
+
+                        else:
+                            sandbox_mgr.create_file_from_storage(
+                                manager_filename,
+                                job.managers[manager_filename].digest,
+                                executable=True)
+                            # Rewrite input file. The untrusted
+                            # contestant program should not be able to
+                            # modify it; however, the grader may
+                            # destroy the input file to prevent the
+                            # contestant's program from directly
+                            # accessing it. Since we cannot create
+                            # files already existing in the sandbox,
+                            # we try removing the file first.
+                            try:
+                                sandbox_mgr.remove_file(input_filename)
+                            except OSError as e:
+                                # Let us be extra sure that the file
+                                # was actually removed and we did not
+                                # mess up with permissions.
+                                assert not sandbox_mgr.file_exists(input_filename)
+                            sandbox_mgr.create_file_from_storage(
+                                input_filename,
+                                job.input)
+
+                            # Allow using any number of processes (because e.g.
+                            # one may want to write a bash checker who calls
+                            # other processes). Set to a high number because
+                            # to avoid fork-bombing the worker.
+                            sandbox_mgr.max_processes = 1000
+
+                            success, _ = evaluation_step(
+                                sandbox_mgr,
+                                [["./%s" % manager_filename,
+                                  input_filename, "res.txt", output_filename]])
+                        if success:
+                            try:
+                                outcome, text = \
+                                    extract_outcome_and_text(sandbox_mgr)
+                            except ValueError as e:
+                                logger.error("Invalid output from "
+                                             "comparator: %s", e.message,
+                                             extra={"operation": job.info})
+                                success = False
+
+                    else:
+                        raise ValueError("Unrecognized second parameter"
+                                         " `%s' for Communication tasktype." %
+                                         self.parameters[2])
 
         # Whatever happened, we conclude.
         job.success = success
