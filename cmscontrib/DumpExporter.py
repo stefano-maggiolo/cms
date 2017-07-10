@@ -33,6 +33,12 @@ from __future__ import unicode_literals
 # We enable monkey patching to make many libraries gevent-friendly
 # (for instance, urllib3, used by requests)
 import gevent.monkey
+
+from cms.db import Announcement
+from cms.db import Participation
+from cms.db import Question
+from cms.db import Team
+
 gevent.monkey.patch_all()
 
 import argparse
@@ -146,7 +152,7 @@ class DumpExporter(object):
 
     def __init__(self, contest_ids, export_target,
                  dump_files, dump_model, skip_generated,
-                 skip_submissions, skip_user_tests):
+                 skip_submissions, skip_user_tests, raw_contest):
         if contest_ids is None:
             with SessionGen() as session:
                 contests = session.query(Contest).all()
@@ -165,9 +171,10 @@ class DumpExporter(object):
             self.tasks_ids = []
         self.dump_files = dump_files
         self.dump_model = dump_model
-        self.skip_generated = skip_generated
-        self.skip_submissions = skip_submissions
-        self.skip_user_tests = skip_user_tests
+        self.raw_contest = raw_contest
+        self.skip_generated = skip_generated or self.raw_contest
+        self.skip_submissions = skip_submissions or self.raw_contest
+        self.skip_user_tests = skip_user_tests or self.raw_contest
         self.export_target = export_target
 
         # If target is not provided, we use the contest's name.
@@ -326,6 +333,9 @@ class DumpExporter(object):
             if self.skip_user_tests and other_cls is UserTest:
                 continue
 
+            if self.raw_contest and other_cls in [User, Question, Announcement, Team, Participation]:
+                continue
+
             # Skip generated data if requested
             if self.skip_generated and other_cls in (SubmissionResult,
                                                      UserTestResult):
@@ -402,6 +412,8 @@ def main():
                         help="don't export submissions")
     parser.add_argument("-U", "--no-user-tests", action="store_true",
                         help="don't export user tests")
+    parser.add_argument("-r", "--raw", action="store_true",
+                        help="don't export any user activity")
     parser.add_argument("export_target", action="store",
                         type=utf8_decoder, nargs='?', default="",
                         help="target directory or archive for export")
@@ -414,7 +426,8 @@ def main():
                             dump_model=not args.files,
                             skip_generated=args.no_generated,
                             skip_submissions=args.no_submissions,
-                            skip_user_tests=args.no_user_tests)
+                            skip_user_tests=args.no_user_tests,
+                            raw_contest=args.raw)
     success = exporter.do_export()
     return 0 if success is True else 1
 
