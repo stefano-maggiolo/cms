@@ -499,6 +499,10 @@ td.token_rules p:last-child {
     width: 20%;
 }
 
+#submission_list colgroup col.considered_in_score {
+    width: 20%;
+}
+
 #submission_list colgroup col.files {
     width: 10%;
 }
