@@ -169,11 +169,11 @@ class Task(Base):
     # this limitation.
     max_submission_number = Column(
         Integer,
-        CheckConstraint("max_submission_number > 0"),
+        CheckConstraint("max_submission_number >= 0"),
         nullable=True)
     max_user_test_number = Column(
         Integer,
-        CheckConstraint("max_user_test_number > 0"),
+        CheckConstraint("max_user_test_number >= 0"),
         nullable=True)
 
     # Minimum interval between two submissions or user_tests for this
