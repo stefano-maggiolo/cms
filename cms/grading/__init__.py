@@ -9,7 +9,7 @@
 # Copyright © 2013-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
-# Copyright © 2016 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
+# Copyright © 2016-2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -38,7 +38,7 @@ from collections import namedtuple
 
 from sqlalchemy.orm import joinedload
 
-from cms import SCORE_MODE_MAX, config
+from cms import config
 from cms.db import Submission
 from cms.grading.Sandbox import Sandbox
 
@@ -878,50 +878,11 @@ def task_score(participation, task):
 
     score = 0.0
 
-    if task.score_mode == SCORE_MODE_MAX:
-        # Like in IOI 2013-: maximum score amongst all submissions.
-
-        # The maximum score amongst all submissions (not yet computed
-        # scores count as 0.0).
-        max_score = 0.0
-
-        for s in submissions:
-            sr = s.get_result(task.active_dataset)
-            if sr is not None and sr.scored():
-                max_score = max(max_score, sr.score)
-            else:
-                partial = True
-
-        score = max_score
-    else:
-        # Like in IOI 2010-2012: maximum score among all tokened
-        # submissions and the last submission.
-
-        # The score of the last submission (if computed, otherwise 0.0).
-        last_score = 0.0
-        # The maximum score amongst the tokened submissions (not yet computed
-        # scores count as 0.0).
-        max_tokened_score = 0.0
-
-        # Last score: if the last submission is scored we use that,
-        # otherwise we use 0.0 (and mark that the score is partial
-        # when the last submission could be scored).
-        last_s = submissions[-1]
-        last_sr = last_s.get_result(task.active_dataset)
-
-        if last_sr is not None and last_sr.scored():
-            last_score = last_sr.score
-        else:
+    for s in submissions:
+        sr = s.get_result(task.active_dataset)
+        if sr is None or not sr.scored():
             partial = True
-
-        for s in submissions:
-            sr = s.get_result(task.active_dataset)
-            if s.tokened():
-                if sr is not None and sr.scored():
-                    max_tokened_score = max(max_tokened_score, sr.score)
-                else:
-                    partial = True
-
-        score = max(last_score, max_tokened_score)
+        else:
+            score = sr.task_score
 
     return score, partial
