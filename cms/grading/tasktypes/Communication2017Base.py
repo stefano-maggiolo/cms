@@ -107,11 +107,11 @@ class Communication2017Base(TaskType):
 
     def get_user_managers(self, unused_submission_format):
         """See TaskType.get_user_managers."""
-        return ["grader.%l"]
+        return []
 
     def get_auto_managers(self):
         """See TaskType.get_auto_managers."""
-        return []
+        return None
 
     def compile(self, job, file_cacher):
         """See TaskType.compile."""
