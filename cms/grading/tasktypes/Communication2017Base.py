@@ -53,7 +53,7 @@ def N_(message):
     return message
 
 
-class Communication2017(TaskType):
+class Communication2017Base(TaskType):
     """Task type class for tasks that requires:
 
     - a *manager* that reads the input file, work out the perfect
