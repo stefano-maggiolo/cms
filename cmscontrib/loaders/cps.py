@@ -211,7 +211,7 @@ class CpsTaskLoader(TaskLoader):
             digest = self.file_cacher.put_file_from_path(
                 manager_exe,
                 "Manager for task %s" % name)
-            args["managers"] += [Manager("manager", digest)]
+            args["managers"]["manager"] = Manager("manager", digest)
 
         # Testcases
         testcases_dir = os.path.join(self.path, 'tests')
