@@ -318,7 +318,7 @@ class Communication2017Base(TaskType):
                     job.user_output = sandbox_mgr.get_file_to_storage(
                         output_filename,
                         "Output file in job %s" % job.info,
-                        trunc_len=100 * 1024)
+                        trunc_len=1024 * 1024 * 10)
 
                 # If just asked to execute, fill text and set dummy
                 # outcome.
