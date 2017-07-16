@@ -29,7 +29,7 @@ import re
 
 from datetime import timedelta
 
-from cms.db import Task, SubmissionFormatElement, Dataset, Manager, Testcase
+from cms.db import Task, SubmissionFormatElement, Dataset, Manager, Testcase, Attachment
 from cmscontrib import touch
 from .base_loader import TaskLoader
 
@@ -42,29 +42,12 @@ def make_timedelta(t):
 
 class CpsTaskLoader(TaskLoader):
     # TODO: doc string
-    """Load a task stored using the Codeforces Polygon format.
-
-    Given the filesystem location of a unpacked task that was packaged
-    in the Polygon format (tests should already be generated), parse
-    those files and directories to produce data that can be consumed by
-    CMS, i.e. a Task object
-
-    Also, as Polygon doesn't support CMS directly, and doesn't allow
-    to customize some task parameters, users can add task configuration
-    files which will be parsed and applied as is. By default, all tasks
-    are batch files, with custom checker and score type is Sum.
-
-    Loaders assumes that checker is check.cpp and written with usage of
-    testlib.h. It provides customized version of testlib.h which allows
-    using Polygon checkers with CMS. Checkers will be compiled during
-    importing the contest.
-
+    """ Loader for CPS exported tasks
     """
 
     short_name = 'cps_task'
     description = 'CPS task format'
 
-    # FIXME: stay?
     @staticmethod
     def detect(path):
         """See docstring in class Loader.
@@ -86,7 +69,7 @@ class CpsTaskLoader(TaskLoader):
         task_type_parameters = json.loads(parameters_str)
         if task_type == 'Batch':
             if 'task_type_parameters_Batch_compilation' not in task_type_parameters:
-                task_type_parameters['task_type_parameters_Batch_compilation'] = 'alone'
+                task_type_parameters['task_type_parameters_Batch_compilation'] = 'grader'
             if 'task_type_parameters_Batch_io_0_inputfile' not in task_type_parameters:
                 task_type_parameters['task_type_parameters_Batch_io_0_inputfile'] = ''
             if 'task_type_parameters_Batch_io_1_outputfile' not in task_type_parameters:
@@ -130,7 +113,33 @@ class CpsTaskLoader(TaskLoader):
 
         # TODO: import statements
 
-        args["submission_format"] = [SubmissionFormatElement("%s.%%l" % name)]
+        data["task_type"] = str(data["task_type"]).capitalize()
+
+        # Setting the submission format
+        # Obtaining testcases' codename
+        testcases_dir = os.path.join(self.path, 'tests')
+        testcase_codenames = [filename[:-3]
+                              for filename in os.listdir(testcases_dir)
+                              if filename[-3:] == '.in']
+        if data["task_type"] == 'OutputOnly':
+            args["submission_format"] = list()
+            for codename in testcase_codenames:
+                args["submission_format"] += \
+                    SubmissionFormatElement("output_%s.txt" % codename)
+        elif data["task_type"] == 'Notice':
+            args["submission_format"] = list()
+        else:
+            args["submission_format"] = [SubmissionFormatElement("%s.%%l" % name)]
+
+        # Attachments
+        args["attachments"] = dict()
+        attachments_dir = os.path.join(self.path, 'attachments')
+        if os.path.exists(attachments_dir):
+            for filename in os.listdir(attachments_dir):
+                digest = self.file_cacher.put_file_from_path(
+                    os.path.join(attachments_dir, filename),
+                    "Attachment %s for task %s" % (filename, name))
+                args["attachments"][filename] = Attachment(filename, digest)
 
         # These options cannot be configured in the CPS format.
         # Uncomment the following to set specific values for them.
@@ -150,6 +159,15 @@ class CpsTaskLoader(TaskLoader):
         # args['token_gen_number'] = 1
         # args['token_gen_interval'] = make_timedelta(1800)
         # args['token_gen_max'] = 2
+
+        args['max_submission_number'] = 50
+        args['max_user_test_number'] = 50
+        if data["task_type"] == 'OutputOnly':
+            args['max_submission_number'] = 100
+            args['max_user_test_number'] = 100
+
+        args['min_submission_interval'] = make_timedelta(60)
+        args['min_user_test_interval'] = make_timedelta(60)
 
         # TODO: additional cms config files
 
@@ -185,6 +203,8 @@ class CpsTaskLoader(TaskLoader):
             evaluation_param = "diff"
 
         args["task_type"] = data['task_type']
+        if data['task_type'] != 'OutputOnly' and data['task_type'] != 'Notice':
+            args["task_type"] += '2017'
         args["task_type_parameters"] = \
             self._get_task_type_parameters(data, data['task_type'], evaluation_param)
 
@@ -214,11 +234,6 @@ class CpsTaskLoader(TaskLoader):
             args["managers"]["manager"] = Manager("manager", digest)
 
         # Testcases
-        testcases_dir = os.path.join(self.path, 'tests')
-        testcase_codenames = [filename[:-3]
-                              for filename in os.listdir(testcases_dir)
-                              if filename[-3:] == '.in']
-
         args["testcases"] = {}
 
         for codename in testcase_codenames:
@@ -261,8 +276,6 @@ class CpsTaskLoader(TaskLoader):
                     )
                     parsed_data.append([score, testcases])
             args["score_type_parameters"] = json.dumps(parsed_data)
-
-            # FIXME: create the score_type_parameters
 
         dataset = Dataset(**args)
         task.active_dataset = dataset
