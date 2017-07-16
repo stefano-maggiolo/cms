@@ -113,6 +113,8 @@ class CpsTaskLoader(TaskLoader):
 
         # TODO: import statements
 
+        data["task_type"] = str(data["task_type"]).capitalize()
+
         # Setting the submission format
         # Obtaining testcases' codename
         testcases_dir = os.path.join(self.path, 'tests')
