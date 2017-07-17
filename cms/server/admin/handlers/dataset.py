@@ -288,7 +288,7 @@ class ActivateDatasetHandler(BaseHandler):
             # This kicks off judging of any submissions which were previously
             # unloved, but are now part of an autojudged taskset.
             self.application.service\
-                .evaluation_service.search_operations_not_done()
+                .evaluation_services.search_operations_not_done()
             self.application.service\
                 .scoring_service.search_operations_not_done()
 
