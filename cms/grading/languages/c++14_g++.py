@@ -66,3 +66,11 @@ class Cpp14Gpp(CompiledLanguage):
                     "-s", "-o", executable_filename]
         command += source_filenames
         return [command]
+
+    def get_compilation_no_link_command(self, source_filenames):
+        """See Language.get_compilation_no_link_command."""
+        command = ["/usr/bin/g++"]
+        command += ["-std=gnu++14", "-O2", "-pipe", "-static",
+                    "-s", "-c"]
+        command += source_filenames
+        return [command]

@@ -67,3 +67,11 @@ class C11Gcc(CompiledLanguage):
         command += source_filenames
         command += ["-lm"]
         return [command]
+
+    def get_compilation_no_link_command(self, source_filenames):
+        """See Language.get_compilation_no_link_command."""
+        command = ["/usr/bin/gcc"]
+        command += ["-std=c11", "-O2", "-pipe", "-static",
+                    "-s", "-c"]
+        command += source_filenames
+        return [command]
