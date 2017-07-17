@@ -71,7 +71,7 @@ class Communication2017(TaskType):
 
     SUBMISSION_PAGE_MESSAGE = ""
 
-    name = "Communication"
+    name = "Batch"
 
     _NUM_PROCESSES = ParameterTypeInt(
         "Number of Processes",
