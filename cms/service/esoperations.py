@@ -8,6 +8,7 @@
 # Copyright © 2013-2015 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
+# Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -167,7 +168,8 @@ def submission_get_operations(submission_result, submission, dataset):
 
     """
     if submission_to_compile(submission_result):
-        if not dataset.active:
+        if (not dataset.active) or \
+                (not submission_result.submission.official):
             priority = PriorityQueue.PRIORITY_EXTRA_LOW
         elif submission_result is None or \
                 submission_result.compilation_tries == 0:
@@ -182,7 +184,8 @@ def submission_get_operations(submission_result, submission, dataset):
             submission.timestamp
 
     elif submission_to_evaluate(submission_result):
-        if not dataset.active:
+        if (not dataset.active) or \
+                (not submission_result.submission.official):
             priority = PriorityQueue.PRIORITY_EXTRA_LOW
         elif submission_result.evaluation_tries == 0:
             priority = PriorityQueue.PRIORITY_MEDIUM
@@ -323,7 +326,8 @@ def get_submissions_operations(session, contest_id=None):
             (SubmissionResult.dataset_id.is_(None)))\
         .with_entities(Submission.id, Dataset.id,
                        case([
-                           (Dataset.id != Task.active_dataset_id,
+                           ((Dataset.id != Task.active_dataset_id) |
+                            (Submission.official != literal(True)),
                             literal(PriorityQueue.PRIORITY_EXTRA_LOW))
                            ], else_=literal(PriorityQueue.PRIORITY_HIGH)),
                        Submission.timestamp)\
@@ -341,7 +345,8 @@ def get_submissions_operations(session, contest_id=None):
             (FILTER_SUBMISSION_RESULTS_TO_COMPILE))\
         .with_entities(Submission.id, Dataset.id,
                        case([
-                           (Dataset.id != Task.active_dataset_id,
+                           ((Dataset.id != Task.active_dataset_id) |
+                            (Submission.official != literal(True)),
                             literal(PriorityQueue.PRIORITY_EXTRA_LOW)),
                            (SubmissionResult.compilation_tries == 0,
                             literal(PriorityQueue.PRIORITY_HIGH))
@@ -376,7 +381,8 @@ def get_submissions_operations(session, contest_id=None):
             (Evaluation.id.is_(None)))\
         .with_entities(Submission.id, Dataset.id,
                        case([
-                           (Dataset.id != Task.active_dataset_id,
+                           ((Dataset.id != Task.active_dataset_id) |
+                            (Submission.official != literal(True)),
                             literal(PriorityQueue.PRIORITY_EXTRA_LOW)),
                            (SubmissionResult.evaluation_tries == 0,
                             literal(PriorityQueue.PRIORITY_MEDIUM))
