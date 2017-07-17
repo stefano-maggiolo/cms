@@ -67,6 +67,7 @@ class CpsTaskLoader(TaskLoader):
                 parameters_str == '':
             parameters_str = '{}'
         task_type_parameters = json.loads(parameters_str)
+
         if task_type == 'Batch':
             if 'task_type_parameters_Batch_compilation' not in task_type_parameters:
                 task_type_parameters['task_type_parameters_Batch_compilation'] = 'grader'
@@ -74,16 +75,30 @@ class CpsTaskLoader(TaskLoader):
                 task_type_parameters['task_type_parameters_Batch_io_0_inputfile'] = ''
             if 'task_type_parameters_Batch_io_1_outputfile' not in task_type_parameters:
                 task_type_parameters['task_type_parameters_Batch_io_1_outputfile'] = ''
-            return '["%s", ["%s", "%s"], "%s"]' % \
+            if 'task_type_parameters_Batch_user_managers' not in task_type_parameters:
+                pas_grader = os.path.join(self.path, 'graders', 'graderlib.pas')
+                user_managers = '[\\"grader.cpp\\", \\"grader.java\\", \\"graderlib.pas\\"]'
+                if not os.path.exists(pas_grader):
+                    user_managers = '[\\"grader.%l\\"]'
+                task_type_parameters['task_type_parameters_Batch_user_managers'] = user_managers
+            return '["%s", ["%s", "%s"], "%s", "%s"]' % \
                    (task_type_parameters['task_type_parameters_Batch_compilation'],
                     task_type_parameters['task_type_parameters_Batch_io_0_inputfile'],
                     task_type_parameters['task_type_parameters_Batch_io_1_outputfile'],
-                    evaluation_param)
+                    evaluation_param,
+                    task_type_parameters['task_type_parameters_Batch_user_managers'])
+
         if task_type == 'Communication':
             if 'task_type_parameters_Communication_num_processes' not in task_type_parameters:
                 task_type_parameters['task_type_parameters_Communication_num_processes'] = 1
-            return '[%s]' % task_type_parameters['task_type_parameters_Communication_num_processes']
-        return '[%s]' % evaluation_param
+            return '["%s", "%s"]' % \
+                   (task_type_parameters['task_type_parameters_Communication_num_processes'],
+                    evaluation_param)
+
+        if task_type == 'TwoSteps' or task_type == 'OutputOnly':
+            return '["%s"]' % evaluation_param
+
+        return ""
 
     def get_task(self, get_statement=True):
         """See docstring in class Loader.
@@ -93,8 +108,6 @@ class CpsTaskLoader(TaskLoader):
         json_src = os.path.join(self.path, 'problem.json')
         if not os.path.exists(json_src):
             logger.error('No task found.')
-
-        json_src = os.path.join(self.path, 'problem.json')
         with open(json_src) as json_file:
             data = json.load(json_file)
 
@@ -113,7 +126,7 @@ class CpsTaskLoader(TaskLoader):
 
         # TODO: import statements
 
-        data["task_type"] = str(data["task_type"]).capitalize()
+        data["task_type"] = data["task_type"][0].upper() + data["task_type"][1:]
 
         # Setting the submission format
         # Obtaining testcases' codename
@@ -124,8 +137,7 @@ class CpsTaskLoader(TaskLoader):
         if data["task_type"] == 'OutputOnly':
             args["submission_format"] = list()
             for codename in testcase_codenames:
-                args["submission_format"] += \
-                    SubmissionFormatElement("output_%s.txt" % codename)
+                args["submission_format"].append(SubmissionFormatElement("output_%s.txt" % codename))
         elif data["task_type"] == 'Notice':
             args["submission_format"] = list()
         else:
@@ -179,8 +191,9 @@ class CpsTaskLoader(TaskLoader):
         args["description"] = "Default"
         args["autojudge"] = True
 
-        args["time_limit"] = float(data['time_limit'])
-        args["memory_limit"] = int(data['memory_limit'])
+        if data['task_type'] != 'OutputOnly':
+            args["time_limit"] = float(data['time_limit'])
+            args["memory_limit"] = int(data['memory_limit'])
 
         args["managers"] = {}
 
@@ -210,6 +223,12 @@ class CpsTaskLoader(TaskLoader):
 
         # Graders
         graders_dir = os.path.join(self.path, 'graders')
+
+        if data['task_type'] == 'TwoSteps':
+            pas_manager = os.path.join(graders_dir, name + 'lib.pas')
+            if not os.path.exists(pas_manager):
+                os.system('touch %s' % pas_manager)
+
         graders_list = \
             [filename for filename in os.listdir(graders_dir) if filename != 'manager.cpp']
         for grader_name in graders_list:
@@ -266,7 +285,10 @@ class CpsTaskLoader(TaskLoader):
         else:
             args["score_type"] = "GroupMin"
             parsed_data = []
+            subtask_no = -1
+            add_optional_name = False
             for subtask in subtasks:
+                subtask_no += 1
                 with open(os.path.join(subtasks_dir, subtask)) as subtask_json:
                     subtask_data = json.load(subtask_json)
                     score = int(subtask_data["score"])
@@ -274,7 +296,14 @@ class CpsTaskLoader(TaskLoader):
                         re.escape(testcase)
                         for testcase in subtask_data["testcases"]
                     )
-                    parsed_data.append([score, testcases])
+                    optional_name = "Subtask %d" % subtask_no
+                    if subtask_no == 0 and score == 0:
+                        add_optional_name = True
+                        optional_name = "Samples"
+                    if add_optional_name:
+                        parsed_data.append([score, testcases, optional_name])
+                    else:
+                        parsed_data.append([score, testcases])
             args["score_type_parameters"] = json.dumps(parsed_data)
 
         dataset = Dataset(**args)
