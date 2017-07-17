@@ -36,8 +36,6 @@ from cms.grading.ParameterTypes import ParameterTypeCollection, \
     ParameterTypeChoice, ParameterTypeString
 from cms.grading.TaskType import TaskType, \
     create_sandbox, delete_sandbox
-from cms.grading.languages.c11_gcc import C11Gcc
-from cms.grading.languages.cpp11_gpp import Cpp11Gpp
 from cms.db import Executable
 
 
@@ -119,10 +117,33 @@ class Batch(TaskType):
         executable_filename = submission_format[0].replace(".%l", "")
         res = dict()
         for language in LANGUAGES:
-            res[language.name] = language.get_compilation_commands(
-                [source.replace(".%l", language.source_extension)
-                 for source in source_filenames],
-                executable_filename)
+            # For solutions using C or C++,
+            # we first compile the grader source
+            # file and then delete it from sandbox,
+            # to prevent the user's solution
+            # files from including it.
+            additional_compile_command = []
+            customized_source_filenames = list(source_filenames)
+            if self._uses_grader():
+                try:
+                    additional_compile_command = language.\
+                        get_compilation_no_link_command(
+                            ["grader%s" % language.source_extension])
+                    additional_compile_command += [
+                        ["/bin/rm", "grader%s" % language.source_extension]
+                    ]
+                except NotImplementedError:
+                    additional_compile_command = []
+                else:
+                    customized_source_filenames[0] = "grader%s" % \
+                                                     language.object_extension
+
+            res[language.name] = additional_compile_command + \
+                language.get_compilation_commands(
+                    [source.replace(".%l", language.source_extension)
+                     for source in customized_source_filenames],
+                    executable_filename)
+
         return res
 
     def get_user_managers(self, unused_submission_format):
@@ -174,16 +195,21 @@ class Batch(TaskType):
         if self._uses_grader():
             files_to_get["grader%s" % source_ext] = \
                 job.managers["grader%s" % source_ext].digest
-            # For solutions using C or C++, we first compile the grader source
-            # file and then delete it from sandbox, to prevent the user's solution
+            # For solutions using C or C++,
+            # we first compile the grader source
+            # file and then delete it from sandbox,
+            # to prevent the user's solution
             # files from including it.
-            if isinstance(language, C11Gcc) or isinstance(language, Cpp11Gpp):
-                source_filenames.insert(0, "grader.o")
+            try:
                 compile_command = language.get_compilation_no_link_command(
                     ["grader%s" % source_ext])
                 compile_command += [["/bin/rm", "grader%s" % source_ext]]
-            else:
+            except NotImplementedError:
+                compile_command = []
                 source_filenames.insert(0, "grader%s" % source_ext)
+            else:
+                source_filenames.insert(0, "grader%s" %
+                                        language.object_extension)
 
         # Also copy all managers that might be useful during compilation.
         for filename in job.managers.iterkeys():
