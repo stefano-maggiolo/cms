@@ -372,6 +372,14 @@ class SubmitHandler(ContestHandler):
         self.redirect(self.contest_url(
             *self.fallback_page, submission_id=encrypt_number(submission.id)))
 
+    @tornado.web.authenticated
+    @actual_phase_required(0, 3)
+    @multi_contest
+    def get(self, task_name):
+        fallback_page = ["tasks", task_name, "submissions"]
+        self.redirect(self.contest_url(
+            *fallback_page))
+
 
 class TaskSubmissionsHandler(ContestHandler):
     """Shows the data of a task in the contest.
