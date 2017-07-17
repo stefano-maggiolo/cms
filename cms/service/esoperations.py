@@ -169,7 +169,7 @@ def submission_get_operations(submission_result, submission, dataset):
     """
     if submission_to_compile(submission_result):
         if (not dataset.active) or \
-                (not submission_result.submission.official):
+                (not submission.official):
             priority = PriorityQueue.PRIORITY_EXTRA_LOW
         elif submission_result is None or \
                 submission_result.compilation_tries == 0:
@@ -185,7 +185,7 @@ def submission_get_operations(submission_result, submission, dataset):
 
     elif submission_to_evaluate(submission_result):
         if (not dataset.active) or \
-                (not submission_result.submission.official):
+                (not submission.official):
             priority = PriorityQueue.PRIORITY_EXTRA_LOW
         elif submission_result.evaluation_tries == 0:
             priority = PriorityQueue.PRIORITY_MEDIUM
