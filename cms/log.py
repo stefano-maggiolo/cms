@@ -111,12 +111,12 @@ class MetricHandler(logging.Handler):
                 tag_value = getattr(record, tag, None)
                 if tag_value is not None and tag not in metric_data:
                     metric_data[tag] = tag_value
-            tags = ["'%s'='%s'" % (str(a), str(b))
+            tags = ["%s='%s'" % (str(a), str(b))
                     for a, b in metric_data.iteritems()]
-            metric_id = ",".join(["'{}'".format(metric_name)] + tags)
+            metric_id = ",".join([metric_name] + tags)
             timestamp = int(record.created * 1000 * 1000 * 1000)
 
-            metric_data_string = "%s value='%s' '%s'" % (
+            metric_data_string = "%s value='%s' %s" % (
                 metric_id,
                 str(value),
                 str(timestamp)
