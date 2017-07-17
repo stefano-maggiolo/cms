@@ -155,3 +155,13 @@ class Sum(ScoreTypeAlone):
             return N_("Correct")
         else:
             return N_("Partially correct")
+
+    def compute_total_score(self, submission_results):
+        if submission_results:
+            sr = submission_results[-1]
+            return sr.score, sr.score_details, \
+                   sr.public_score, sr.public_score_details, \
+                   sr.ranking_details
+        else:
+            return 0, "", 0, "", ""
+
