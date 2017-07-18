@@ -131,9 +131,9 @@ class CpsTaskLoader(TaskLoader):
         # Setting the submission format
         # Obtaining testcases' codename
         testcases_dir = os.path.join(self.path, 'tests')
-        testcase_codenames = [filename[:-3]
-                              for filename in os.listdir(testcases_dir)
-                              if filename[-3:] == '.in']
+        testcase_codenames = sorted([filename[:-3]
+                                    for filename in os.listdir(testcases_dir)
+                                    if filename[-3:] == '.in'])
         if data["task_type"] == 'OutputOnly':
             args["submission_format"] = list()
             for codename in testcase_codenames:
@@ -172,6 +172,7 @@ class CpsTaskLoader(TaskLoader):
         # args['token_gen_interval'] = make_timedelta(1800)
         # args['token_gen_max'] = 2
 
+        args['score_precision'] = 2
         args['max_submission_number'] = 50
         args['max_user_test_number'] = 50
         if data["task_type"] == 'OutputOnly':
@@ -227,7 +228,7 @@ class CpsTaskLoader(TaskLoader):
         if data['task_type'] == 'TwoSteps':
             pas_manager = os.path.join(graders_dir, name + 'lib.pas')
             if not os.path.exists(pas_manager):
-                os.system('touch %s' % pas_manager)
+                touch(pas_manager)
 
         graders_list = \
             [filename for filename in os.listdir(graders_dir) if filename != 'manager.cpp']
