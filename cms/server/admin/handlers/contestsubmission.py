@@ -57,42 +57,31 @@ class ContestSubmissionsHandler(BaseHandler):
         try:
             operation = self.get_argument("operation")
             if operation == "Filter":
-                try:
-                    participation_id = self.get_argument("participation_id")
-                    if participation_id != 'null':
-                        filter_params["last_participation_id"] = \
-                            int(participation_id)
-                        query = query.filter(Submission.participation_id ==
-                                             participation_id)
-                except:
-                    pass
-                try:
-                    task_id = self.get_argument("task_id")
-                    if task_id != 'null':
-                        filter_params["last_task_id"] = int(task_id)
-                        query = query.filter(Task.id == task_id)
-                except:
-                    pass
-                try:
-                    outcome_filter = self.get_argument("outcome_filter")
-                    filter_params["last_outcome_filter"] = outcome_filter
-                    if outcome_filter != "":
-                        outcome = "\"outcome\": \""+outcome_filter+"\""
-                        query = query.join(SubmissionResult)\
-                            .filter(SubmissionResult.score_details.
-                                    contains(outcome))
-                except:
-                    pass
-                try:
-                    details = self.get_argument("details")
-                    filter_params["last_details"] = details
-                    if details != "":
-                        query = query.join(Evaluation)\
-                            .filter(Evaluation.text.op('~')(details))\
-                            .group_by(Submission.id)
-                except:
-                    pass
-        except:
+                participation_id = self.get_argument("participation_id")
+                if participation_id != 'null':
+                    filter_params["last_participation_id"] = \
+                        int(participation_id)
+                    query = query.filter(Submission.participation_id ==
+                                         participation_id)
+                print(Exception.__class__.__name__)
+                task_id = self.get_argument("task_id")
+                if task_id != 'null':
+                    filter_params["last_task_id"] = int(task_id)
+                    query = query.filter(Task.id == task_id)
+                outcome_filter = self.get_argument("outcome_filter")
+                filter_params["last_outcome_filter"] = outcome_filter
+                if outcome_filter != "":
+                    outcome = "\"outcome\": \""+outcome_filter+"\""
+                    query = query.join(SubmissionResult)\
+                        .filter(SubmissionResult.score_details.
+                                contains(outcome))
+                details = self.get_argument("details")
+                filter_params["last_details"] = details
+                if details != "":
+                    query = query.join(Evaluation)\
+                        .filter(Evaluation.text.op('~')(details))\
+                        .group_by(Submission.id)
+        except KeyError:
             pass
 
         page = int(self.get_query_argument("page", 0))
