@@ -7,16 +7,50 @@
 <h1>All Submissions</h1>
 
 <div id="submissions">
-
   <p>
     Reevaluate all {{ submission_count }} submissions in this contest (for all datasets)
     {% module ReevaluationButtons(
            url,
            contest.id) %}
   </p>
-
+  <form action="{{ url("contest", contest.id, "submissions") }}" method="get">
+    User:
+    <select name="participation_id" defaultValue="last_participation_id">
+        <option value="null"> All</option>
+        {% for participation in contest.participations %}
+          {% if participation.id == last_participation_id %}
+            <option value="{{ participation.id }}" selected > {{ participation.user.username }}</option>
+          {% else %}
+            <option value="{{ participation.id }}"> {{ participation.user.username }}</option>
+          {% end %}
+        {% end %}
+    </select>
+    &emsp;Task:
+    <select name="task_id">
+        <option value="null" selected> All</option>
+        {% for task in contest.tasks %}
+          {% if task.id == last_task_id %}
+            <option value="{{ task.id }}" selected> {{ task.name }}</option>
+          {% else %}
+            <option value="{{ task.id }}"> {{ task.name }}</option>
+          {% end %}
+        {% end %}
+    </select>
+    &emsp;Outcome:
+    <input type="text" name="outcome_filter" list="outcome_list" value="{{ last_outcome_filter }}" autocomplete="off">
+    <datalist id="outcome_list">
+      <option value="Correct">
+      <option value="Not correct">
+      <option value="Partially correct">
+    </datalist>
+    &emsp;Details:
+    <input type="text" name="details" value="{{ last_details }}">
+    &emsp;<input type="submit" name="operation" value="Filter">
+  <input type="submit" name="operation" value="Reset">
+  </form>
   {% set page_url = ["contest", contest.id, "submissions"] %}
   {% include fragments/submission_rows.html %}
 </div>
+
 
 {% end %}
