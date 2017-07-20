@@ -265,23 +265,23 @@ class ScoreTypeGroup(ScoreTypeAlone):
             <tbody>
     {% set failed = 0 %}
     {% set idx = 0 %}
+    {% set partial = 0 %}
     {% for tc in st["testcases"] %}
         {% set idx = idx + 1 %}
         {% if failed == 0 %}
             {% if "outcome" in tc and "text" in tc %}
-                {% if tc["outcome"] != "Correct" %}
+                {% if tc["outcome"] == "Partially correct" %}
+                    {% set partial = 1 %}
+                {% end %}
+                {% if tc["outcome"] == "Not correct" %}
                     {% set failed = 1 %}
-                    {% if tc["outcome"] == "Not correct" %}
-                        <tr class="notcorrect">
-                    {% else %}
-                        <tr class="partiallycorrect">
-                    {% end %}
-                            <td class="idx">{{ _("Test") }} {{ idx }}</td>
-                            <td class="outcome">{{ _(tc["outcome"]) }}</td>
-                            <td class="details">
-                              {{ format_status_text(tc["text"], _) }}
-                            </td>
-                        </tr>
+                    <tr class="notcorrect">
+                        <td class="idx">{{ _("Test") }} {{ idx }}</td>
+                        <td class="outcome">{{ _(tc["outcome"]) }}</td>
+                        <td class="details">
+                          {{ format_status_text(tc["text"], _) }}
+                        </td>
+                    </tr>
                 {% end %}
             {% else %}
                     {% set failed = 1 %}
@@ -294,11 +294,19 @@ class ScoreTypeGroup(ScoreTypeAlone):
         {% end %}
     {% end %}
     {% if failed == 0 %}
-        <tr class="correct">
-            <td colspan="5" class="outcome">
-                {{ _("All testcases passed") }}
-            </td>
-        </tr>
+        {% if partial %}
+            <tr class="partiallycorrect">
+        {% else %}
+            <tr class="correct">
+        {% end %}
+                <td colspan="5" class="outcome">
+                    {% if partial %}
+                        {{ _("Partially correct") }}
+                    {% else %}
+                        {{ _("Correct") }}
+                    {% end %}
+                </td>
+            </tr>
     {% end %}
             </tbody>
         </table>
