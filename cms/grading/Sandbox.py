@@ -989,6 +989,7 @@ class IsolateSandbox(SandboxBase):
             res += ["--wall-time=%g" % self.wallclock_timeout]
         if self.extra_timeout is not None:
             res += ["--extra-time=%g" % self.extra_timeout]
+        res += ["--cg-timing"]
         res += ["--meta=%s" % self.relative_path("%s.%d" % (self.info_basename,
                                                             self.exec_num))]
         res += ["--run"]
