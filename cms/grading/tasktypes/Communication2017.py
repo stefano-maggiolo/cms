@@ -111,7 +111,8 @@ class Communication2017(TaskType):
 
     def get_auto_managers(self):
         """See TaskType.get_auto_managers."""
-        return []
+        # manager will be automatically ignored by Batch
+        return None
 
     def compile(self, job, file_cacher):
         """See TaskType.compile."""
