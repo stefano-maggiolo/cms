@@ -174,7 +174,7 @@ class CallHandler(ContestHandler):
                 '%s/cms_request' % config.print_system_address,
                 data={
                     'request_message': request_type,
-                    'ip': str(participation.ip[0])
+                    'ip': str(self.request.remote_ip)
                 }
             )
             response.raise_for_status()
