@@ -403,7 +403,8 @@ class TaskSubmissionsHandler(ContestHandler):
             .filter(Submission.participation == participation)\
             .filter(Submission.task == task)\
             .options(joinedload(Submission.token))\
-            .options(joinedload(Submission.results))\
+            .options(joinedload(Submission.results)) \
+            .order_by(Submission.timestamp) \
             .all()
 
         last_submission_result = None
