@@ -8,6 +8,7 @@
 # Copyright © 2012-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
+# Copyright © 2017 Peyman Jabbarzade Ganje <peyman.jabarzade@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -30,7 +31,8 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from cms.db import Contest, Submission, UserTest, Task
+from cms.db import Contest, Submission, UserTest, Task, \
+    SubmissionResult, Evaluation
 
 from .base import BaseHandler, require_permission
 
@@ -46,9 +48,45 @@ class ContestSubmissionsHandler(BaseHandler):
 
         query = self.sql_session.query(Submission).join(Task)\
             .filter(Task.contest == contest)
+        filter_params = {
+            "last_participation_id": None,
+            "last_task_id": None,
+            "last_outcome_filter": "",
+            "last_details": ""
+        }
+        try:
+            operation = self.get_argument("operation")
+            if operation == "Filter":
+                participation_id = self.get_argument("participation_id")
+                if participation_id != 'null':
+                    filter_params["last_participation_id"] = \
+                        int(participation_id)
+                    query = query.filter(Submission.participation_id ==
+                                         participation_id)
+                print(Exception.__class__.__name__)
+                task_id = self.get_argument("task_id")
+                if task_id != 'null':
+                    filter_params["last_task_id"] = int(task_id)
+                    query = query.filter(Task.id == task_id)
+                outcome_filter = self.get_argument("outcome_filter")
+                filter_params["last_outcome_filter"] = outcome_filter
+                if outcome_filter != "":
+                    outcome = "\"outcome\": \""+outcome_filter+"\""
+                    query = query.join(SubmissionResult)\
+                        .filter(SubmissionResult.score_details.
+                                contains(outcome))
+                details = self.get_argument("details")
+                filter_params["last_details"] = details
+                if details != "":
+                    query = query.join(Evaluation)\
+                        .filter(Evaluation.text.op('~')(details))\
+                        .group_by(Submission.id)
+        except KeyError:
+            pass
+
         page = int(self.get_query_argument("page", 0))
         self.render_params_for_submissions(query, page)
-
+        self.r_params.update(filter_params)
         self.render("contest_submissions.html", **self.r_params)
 
 
