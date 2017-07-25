@@ -48,6 +48,7 @@ from cms import ServiceCoord, get_service_shards, random_service
 from cms.io import Executor, TriggeredService, rpc_method
 from cms.db import SessionGen
 from cms.grading.Job import JobGroup, Job
+from cms.io import PriorityQueue
 from cms.service import get_submissions, get_submission_results
 
 from .esoperations import ESOperation, get_relevant_operations, \
@@ -491,6 +492,12 @@ class QueueService(TriggeredService):
             except IndexError:
                 logger.error("No EvaluationServices are connected, "
                              "result will be discarded")
+                try:
+                    self.pending.finalize(operation)
+                except KeyError:
+                    logger.warning("Operation written %s was not pending, "
+                                   "ignoring.",
+                                   operation)
 
     def result_written(self, success_new_operations, operation, error=None):
         success, new_operations = None, []
@@ -507,8 +514,10 @@ class QueueService(TriggeredService):
         if error is not None:
             logger.warning("Operation %s writing error (%s); re-enqueuing.",
                            operation, error)
-            priority, timestamp = operation.side_data
-            self.enqueue(operation, priority, timestamp)
+            # The operation has been created by using from_dict.
+            # We can't use side_data here so we can't access
+            # priority, and timestamp of the operation.
+            self.enqueue(operation, PriorityQueue.PRIORITY_LOW, datetime.now())
         else:
             for operation, priority, timestamp in new_operations:
                 self.enqueue(
