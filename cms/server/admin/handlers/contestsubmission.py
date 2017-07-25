@@ -31,6 +31,8 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from tornado.web import MissingArgumentError
+
 from cms.db import Contest, Submission, UserTest, Task, \
     SubmissionResult, Evaluation
 
@@ -81,7 +83,7 @@ class ContestSubmissionsHandler(BaseHandler):
                     query = query.join(Evaluation)\
                         .filter(Evaluation.text.op('~')(details))\
                         .group_by(Submission.id)
-        except KeyError:
+        except MissingArgumentError:
             pass
 
         page = int(self.get_query_argument("page", 0))
