@@ -29,7 +29,7 @@ import re
 
 from datetime import timedelta
 
-from cms.db import Task, SubmissionFormatElement, Dataset, Manager, Testcase, Attachment
+from cms.db import Task, SubmissionFormatElement, Dataset, Manager, Testcase, Attachment, Statement
 from cmscontrib import touch
 from .base_loader import TaskLoader
 
@@ -91,7 +91,7 @@ class CpsTaskLoader(TaskLoader):
         if task_type == 'Communication':
             if 'task_type_parameters_Communication_num_processes' not in task_type_parameters:
                 task_type_parameters['task_type_parameters_Communication_num_processes'] = 1
-            return '["%s", "%s"]' % \
+            return '[%s, "%s"]' % \
                    (task_type_parameters['task_type_parameters_Communication_num_processes'],
                     evaluation_param)
 
@@ -124,16 +124,48 @@ class CpsTaskLoader(TaskLoader):
         args["name"] = name
         args["title"] = data['name']
 
-        # TODO: import statements
+        # Statements
+        if get_statement:
+            statements_dir = os.path.join(self.path, 'statements')
+            if os.path.exists(statements_dir):
+                statements = [filename for filename in
+                              os.listdir(statements_dir) if filename[-4:] == ".pdf"]
+                if len(statements) > 0:
+                    args['statements'] = dict()
+                    logger.info('Statements found')
+                for statement in statements:
+                    language = statement[:-4]
+                    if language == "en_US":
+                        args["primary_statements"] = '["en_US"]'
+                    digest = self.file_cacher.put_file_from_path(
+                        os.path.join(statements_dir, statement),
+                        "Statement for task %s (lang: %s)" %
+                        (name, language))
+                    args['statements'][language] = Statement(language, digest)
+
+        # Attachments
+        args["attachments"] = dict()
+        attachments_dir = os.path.join(self.path, 'attachments')
+        if os.path.exists(attachments_dir):
+            logger.info("Attachments found")
+            for filename in os.listdir(attachments_dir):
+                digest = self.file_cacher.put_file_from_path(
+                    os.path.join(attachments_dir, filename),
+                    "Attachment %s for task %s" % (filename, name))
+                args["attachments"][filename] = Attachment(filename, digest)
 
         data["task_type"] = data["task_type"][0].upper() + data["task_type"][1:]
 
         # Setting the submission format
         # Obtaining testcases' codename
         testcases_dir = os.path.join(self.path, 'tests')
-        testcase_codenames = sorted([filename[:-3]
-                                    for filename in os.listdir(testcases_dir)
-                                    if filename[-3:] == '.in'])
+        if not os.path.exists(testcases_dir):
+            logger.warning('Testcase folder was not found')
+            testcase_codenames = []
+        else:
+            testcase_codenames = sorted([filename[:-3]
+                                         for filename in os.listdir(testcases_dir)
+                                         if filename[-3:] == '.in'])
         if data["task_type"] == 'OutputOnly':
             args["submission_format"] = list()
             for codename in testcase_codenames:
@@ -142,16 +174,6 @@ class CpsTaskLoader(TaskLoader):
             args["submission_format"] = list()
         else:
             args["submission_format"] = [SubmissionFormatElement("%s.%%l" % name)]
-
-        # Attachments
-        args["attachments"] = dict()
-        attachments_dir = os.path.join(self.path, 'attachments')
-        if os.path.exists(attachments_dir):
-            for filename in os.listdir(attachments_dir):
-                digest = self.file_cacher.put_file_from_path(
-                    os.path.join(attachments_dir, filename),
-                    "Attachment %s for task %s" % (filename, name))
-                args["attachments"][filename] = Attachment(filename, digest)
 
         # These options cannot be configured in the CPS format.
         # Uncomment the following to set specific values for them.
@@ -182,8 +204,6 @@ class CpsTaskLoader(TaskLoader):
         args['min_submission_interval'] = make_timedelta(60)
         args['min_user_test_interval'] = make_timedelta(60)
 
-        # TODO: additional cms config files
-
         task = Task(**args)
 
         args = dict()
@@ -192,7 +212,7 @@ class CpsTaskLoader(TaskLoader):
         args["description"] = "Default"
         args["autojudge"] = True
 
-        if data['task_type'] != 'OutputOnly':
+        if data['task_type'] != 'OutputOnly' and data['task_type'] != 'Notice':
             args["time_limit"] = float(data['time_limit'])
             args["memory_limit"] = int(data['memory_limit'])
 
@@ -226,12 +246,19 @@ class CpsTaskLoader(TaskLoader):
         graders_dir = os.path.join(self.path, 'graders')
 
         if data['task_type'] == 'TwoSteps':
-            pas_manager = os.path.join(graders_dir, name + 'lib.pas')
-            if not os.path.exists(pas_manager):
-                touch(pas_manager)
+            pas_manager = name + 'lib.pas'
+            pas_manager_path = os.path.join(graders_dir, pas_manager)
+            if not os.path.exists(pas_manager_path):
+                digest = self.file_cacher.put_file_content(
+                    '', 'Pascal manager for task %s' % name)
+                args["managers"][pas_manager] = Manager(pas_manager, digest)
 
-        graders_list = \
-            [filename for filename in os.listdir(graders_dir) if filename != 'manager.cpp']
+        if not os.path.exists(graders_dir):
+            logger.warning('Grader folder was not found')
+            graders_list = []
+        else:
+            graders_list = \
+                [filename for filename in os.listdir(graders_dir) if filename != 'manager.cpp']
         for grader_name in graders_list:
             grader_src = os.path.join(graders_dir, grader_name)
             digest = self.file_cacher.put_file_from_path(
@@ -260,10 +287,10 @@ class CpsTaskLoader(TaskLoader):
             infile = os.path.join(testcases_dir, "%s.in" % codename)
             outfile = os.path.join(testcases_dir, "%s.out" % codename)
             if not os.path.exists(outfile):
-                logger.error('Could not file the output file for testcase %s'
-                             % codename)
-                logger.error('Aborting...')
-                exit()
+                logger.critical('Could not file the output file for testcase %s'
+                                % codename)
+                logger.critical('Aborting...')
+                return
 
             input_digest = self.file_cacher.put_file_from_path(
                 infile,
@@ -277,10 +304,14 @@ class CpsTaskLoader(TaskLoader):
 
         # Score Type
         subtasks_dir = os.path.join(self.path, 'subtasks')
-        subtasks = sorted(os.listdir(subtasks_dir))
+        if not os.path.exists(subtasks_dir):
+            logger.warning('Subtask folder was not found')
+            subtasks = []
+        else:
+            subtasks = sorted(os.listdir(subtasks_dir))
 
         if len(subtasks) == 0:
-            number_tests = len(testcase_codenames)
+            number_tests = max(len(testcase_codenames), 1)
             args["score_type"] = "Sum"
             args["score_type_parameters"] = str(100 / number_tests)
         else:
