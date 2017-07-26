@@ -193,8 +193,10 @@ class CpsTaskLoader(TaskLoader):
         # args['token_gen_number'] = 1
         # args['token_gen_interval'] = make_timedelta(1800)
         # args['token_gen_max'] = 2
-
-        args['score_precision'] = 2
+        if "score_precision" in data:
+            args['score_precision'] = int(data["score_precision"])
+        else:
+            args['score_precision'] = 2
         args['max_submission_number'] = 50
         args['max_user_test_number'] = 50
         if data["task_type"] == 'OutputOnly':
