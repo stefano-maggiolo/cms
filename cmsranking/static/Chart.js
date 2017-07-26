@@ -18,7 +18,7 @@
 var Chart = new function () {
     var self = this;
 
-    self.draw_chart = function (canvas, y_min, y_max, y_def, h_def, x_int, data, color, marks) {
+    self.draw_chart = function (canvas, y_min, y_max, y_def, h_def, x_int, data, color, marks, fuzzy_marks) {
         // canvas is the context
 /*
         canvas (GWTCanvas): the canvas this chart will be drawn on
@@ -32,6 +32,7 @@ var Chart = new function () {
         data (list of tuples of float): the data to be drawn, in the form (x, y, h)
         color (tuple of int): the r, g and b components of the color for the line
         marks (list of float): the y values at which horizontal lines will be drawn
+        fuzzy_marks (boolean): if true, make the marks fuzzy
 */
 
         // width and height
@@ -81,11 +82,29 @@ var Chart = new function () {
         context.moveTo(pad_l, pad_t);
         context.lineTo(wid - pad_r, pad_t);
         context.stroke();
-        for (var i in marks) {
-            context.beginPath();
-            context.moveTo(get_x(0), get_y(marks[i]));
-            context.lineTo(get_x(x_size), get_y(marks[i]));
-            context.stroke();
+        if (fuzzy_marks) {
+            var fuzzy_height = canvas.height / 20;
+            for (var i in marks) {
+                y = get_y(marks[i]);
+                var gradient = context.createLinearGradient(
+                    0, y - fuzzy_height / 2, 0, y + fuzzy_height / 2);
+                gradient.addColorStop(0.0, 'rgba(221, 221, 221, 0.0)');
+                gradient.addColorStop(0.4, 'rgba(221, 221, 221, 0.8)');
+                gradient.addColorStop(0.6, 'rgba(221, 221, 221, 0.8)');
+                gradient.addColorStop(1.0, 'rgba(221, 221, 221, 0.0)');
+                f = context.fillStyle;
+                context.fillStyle = gradient;
+                context.fillRect(get_x(0), y - fuzzy_height / 2,
+                                 get_x(x_size) - get_x(0), fuzzy_height);
+                context.fillStyle = f;
+            }
+        } else {
+            for (var i in marks) {
+                context.beginPath();
+                context.moveTo(get_x(0), get_y(marks[i]));
+                context.lineTo(get_x(x_size), get_y(marks[i]));
+                context.stroke();
+            }
         }
 
         // draw labels on the axes
@@ -95,8 +114,10 @@ var Chart = new function () {
         if (y_min != y_max)
             context.fillText(y_min.toString(), 18, hei - pad_b);
         context.fillText(y_max.toString(), 18, pad_t);
-        for (var i in marks) {
-            context.fillText(marks[i].toString(), 18, get_y(marks[i]));
+        if (!fuzzy_marks) {
+            for (var i in marks) {
+                context.fillText(marks[i].toString(), 18, get_y(marks[i]));
+            }
         }
 
         var i = 0  // index of current interval

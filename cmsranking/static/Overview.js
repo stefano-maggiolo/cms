@@ -126,22 +126,27 @@ var Overview = new function () {
 
 
     self.update_rank_axis = function () {
-        var d = Raphael.format("M {1},{3} L {1},{7} M {0},{4} L {2},{4} M {0},{5} L {2},{5} M {0},{6} L {2},{6}",
-                               self.width - self.PAD_R - 4,
-                               self.width - self.PAD_R,
-                               self.width - self.PAD_R + 4,
-                               self.PAD_T,
-                               self.PAD_T + (self.height - self.PAD_T - self.PAD_B) / 12,
-                               self.PAD_T + (self.height - self.PAD_T - self.PAD_B) / 4,
-                               self.PAD_T + (self.height - self.PAD_T - self.PAD_B) / 2,
-                               self.height - self.PAD_B);
+        var stops = [
+            "#6aaf6a:6.3",
+            "#acd2ac:10.3",
+            "#acd2ac:23",
+            "#d4e8d4:27",
+            "#d4e8d4:48",
+            "#b8b8b8:52",
+        ].join("-");
 
         if (self.rank_axis) {
-            self.rank_axis.attr("path", d);
+            self.rank_axis.attr("height", self.height - self.PAD_B - self.PAD_T);
         } else {
-            self.rank_axis = self.paper.path(d).attr(
-                {"fill": "none", "stroke": "#b8b8b8", "stroke-width": 3, "stroke-linecap": "round"});
+            self.rank_axis = self.paper.rect(
+                self.width - self.PAD_R - 1.5, self.PAD_T,
+                3, self.height - self.PAD_B - self.PAD_T).attr({
+		        "fill": "270-" + stops,
+                "stroke": "none"
+            });
         }
+
+
     };
 
 

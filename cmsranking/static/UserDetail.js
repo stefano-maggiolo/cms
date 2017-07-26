@@ -230,7 +230,7 @@ var UserDetail = new function () {
             [102, 102, 238], // color
             [max_score*1/4, // markers
              max_score*2/4,
-             max_score*3/4]);
+             max_score*3/4], false);
         Chart.draw_chart(self.rank_chart, // canvas object
             users, 1, 1, users-1, // y_min, y_max, x_default, h_default
             ranges, // intervals
@@ -238,7 +238,7 @@ var UserDetail = new function () {
             [210, 50, 50], // color
             [Math.ceil (users/12), // markers
              Math.ceil (users/4 ),
-             Math.floor(users/2 )]);
+             Math.floor(users/2 )], true);
     };
 
     self.make_submission_table = function (task_id) {
