@@ -27,7 +27,7 @@ import logging
 import os
 import re
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from cms.db import Task, SubmissionFormatElement, Dataset, Manager, Testcase, Attachment, Statement
 from cmscontrib import touch
@@ -339,6 +339,8 @@ class CpsTaskLoader(TaskLoader):
                     else:
                         parsed_data.append([score, testcases])
             args["score_type_parameters"] = json.dumps(parsed_data)
+        args["description"] = datetime.utcnow()\
+            .strftime("%Y-%m-%d %H:%M:%S %Z%z")
 
         dataset = Dataset(**args)
         task.active_dataset = dataset

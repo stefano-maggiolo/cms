@@ -116,7 +116,38 @@ class TaskImporter(BaseImporter):
                         if self.no_statement:
                             ignore.update(("primary_statements",
                                            "statements"))
+                        new_dataset = task.active_dataset
+                        new_testcases = dict()
+                        for new_t in new_dataset.testcases.itervalues():
+                            new_testcases[new_t.codename] = new_t
+                        old_dataset = old_task.active_dataset
+                        old_results = old_dataset.\
+                            get_submission_results(old_dataset)
+
+                        submission_results = []
+                        for old_sr in old_results:
+                            # Create the submission result.
+                            new_sr = old_sr.clone()
+                            new_sr.submission_id = old_sr.submission_id
+                            new_sr.dataset = new_dataset
+                            submission_results.append(new_sr)
+
+                            # Create executables.
+                            for old_e in old_sr.executables.itervalues():
+                                new_e = old_e.clone()
+                                new_e.submission_result = new_sr
+
+                            # Create evaluations.
+                            for old_e in old_sr.evaluations:
+                                codename = old_e.codename
+                                if codename in new_testcases:
+                                    new_e = old_e.clone()
+                                    new_e.submission_result = new_sr
+                                    new_e.testcase = new_testcases[codename]
+
                         self._update_object(old_task, task, ignore)
+                        for item in submission_results:
+                            session.add(item)
                     task = old_task
                 else:
                     logger.critical("Task \"%s\" already exists in database.",
