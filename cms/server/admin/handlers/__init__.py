@@ -46,12 +46,14 @@ from .contestuser import \
     RemoveParticipationHandler, \
     AddContestUserHandler, \
     ParticipationHandler, \
+    AdvancedParticipationHandler, \
     MessageHandler
 from .contesttask import \
     ContestTasksHandler, \
     AddContestTaskHandler
 from .contestsubmission import \
     ContestSubmissionsHandler, \
+    AdvancedContestSubmissionsHandler, \
     ContestUserTestsHandler
 from .contestannouncement import \
     AddAnnouncementHandler, \
@@ -74,6 +76,7 @@ from .task import \
     RemoveTaskHandler
 from .dataset import \
     DatasetSubmissionsHandler, \
+    AdvancedDatasetSubmissionsHandler, \
     CloneDatasetHandler, \
     RenameDatasetHandler, \
     DeleteDatasetHandler, \
@@ -100,6 +103,7 @@ from .admin import \
     AdminHandler
 from .submission import \
     SubmissionHandler, \
+    AdvancedSubmissionHandler, \
     SubmissionCommentHandler, \
     SubmissionOfficialStatusHandler, \
     SubmissionFileHandler
@@ -134,6 +138,7 @@ HANDLERS = [
     (r"/contest/([0-9]+)/users/add", AddContestUserHandler),
     (r"/contest/([0-9]+)/user/([0-9]+)/remove", RemoveParticipationHandler),
     (r"/contest/([0-9]+)/user/([0-9]+)/edit", ParticipationHandler),
+    (r"/contest/([0-9]+)/user/([0-9]+)/edit/advanced", AdvancedParticipationHandler),
     (r"/contest/([0-9]+)/user/([0-9]+)/message", MessageHandler),
 
     # Contest's tasks
@@ -144,6 +149,7 @@ HANDLERS = [
     # Contest's submissions / user tests
 
     (r"/contest/([0-9]+)/submissions", ContestSubmissionsHandler),
+    (r"/contest/([0-9]+)/submissions/advanced", AdvancedContestSubmissionsHandler),
     (r"/contest/([0-9]+)/user_tests", ContestUserTestsHandler),
 
     # Contest's announcements
@@ -179,6 +185,7 @@ HANDLERS = [
     # Datasets
 
     (r"/dataset/([0-9]+)", DatasetSubmissionsHandler),
+    (r"/dataset/([0-9]+)/advanced", AdvancedDatasetSubmissionsHandler),
     (r"/dataset/([0-9]+)/clone", CloneDatasetHandler),
     (r"/dataset/([0-9]+)/rename", RenameDatasetHandler),
     (r"/dataset/([0-9]+)/delete", DeleteDatasetHandler),
@@ -212,6 +219,7 @@ HANDLERS = [
     # Submissions
 
     (r"/submission/([0-9]+)(?:/([0-9]+))?", SubmissionHandler),
+    (r"/submission/([0-9]+)(?:/([0-9]+))?/advanced", AdvancedSubmissionHandler),
     (r"/submission/([0-9]+)(?:/([0-9]+))?/comment", SubmissionCommentHandler),
     (r"/submission/([0-9]+)(?:/([0-9]+))?/official",
      SubmissionOfficialStatusHandler),

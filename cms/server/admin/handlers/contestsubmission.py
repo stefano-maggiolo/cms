@@ -9,6 +9,7 @@
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2017 Peyman Jabbarzade Ganje <peyman.jabarzade@gmail.com>
+# Copyright © 2017 Kiarash Golezardi <kiarashgolezardi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -90,6 +91,22 @@ class ContestSubmissionsHandler(BaseHandler):
         self.render_params_for_submissions(query, page)
         self.r_params.update(filter_params)
         self.render("contest_submissions.html", **self.r_params)
+
+
+class AdvancedContestSubmissionsHandler(BaseHandler):
+    @require_permission(BaseHandler.PERMISSION_ALL)
+    def get(self, contest_id):
+        contest = self.safe_get_item(Contest, contest_id)
+        self.contest = contest
+
+        self.r_params = self.render_params()
+
+        self.r_params["next_page"] = ["contest", contest_id, "submissions"]
+        invalidate_arguments = dict()
+        invalidate_arguments["contest_id"] = contest_id
+        self.r_params["invalidate_arguments"] = invalidate_arguments
+
+        self.render("advanced_reevaluation.html", **self.r_params)
 
 
 class ContestUserTestsHandler(BaseHandler):

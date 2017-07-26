@@ -9,6 +9,7 @@
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
+# Copyright © 2017 Kiarash Golezardi <kiarashgolezardi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -249,7 +250,7 @@ def user_test_get_operations(user_test, dataset):
             user_test.timestamp
 
 
-def get_relevant_operations(level, submissions, dataset_id=None):
+def get_relevant_operations(level, submissions, dataset_id=None, testcases=None):
     """Return all possible operations involving the submissions
 
     level (string): the starting level; if 'compilation', then we
@@ -282,11 +283,12 @@ def get_relevant_operations(level, submissions, dataset_id=None):
                     submission.id,
                     dataset.id))
             for codename in dataset.testcases:
-                operations.append(ESOperation(
-                    ESOperation.EVALUATION,
-                    submission.id,
-                    dataset.id,
-                    codename))
+                if testcases is None or codename in testcases:
+                    operations.append(ESOperation(
+                        ESOperation.EVALUATION,
+                        submission.id,
+                        dataset.id,
+                        codename))
 
     return operations
 

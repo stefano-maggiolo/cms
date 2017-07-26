@@ -12,6 +12,7 @@
 # Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
 # Copyright © 2016 Peyman Jabbarzade Ganje <peyman.jabarzade@gmail.com>
 # Copyright © 2017 Valentin Rosca <rosca.valentin2012@gmail.com>
+# Copyright © 2017 Kiarash Golezardi <kiarashgolezardi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -242,6 +243,31 @@ class ParticipationHandler(BaseHandler):
             # Update the user on RWS.
             self.application.service.proxy_service.reinitialize()
         self.redirect(fallback_page)
+
+
+class AdvancedParticipationHandler(BaseHandler):
+    @require_permission(BaseHandler.PERMISSION_ALL)
+    def get(self, contest_id, user_id):
+        self.contest = self.safe_get_item(Contest, contest_id)
+        participation = self.sql_session.query(Participation) \
+            .filter(Participation.contest_id == contest_id) \
+            .filter(Participation.user_id == user_id) \
+            .first()
+
+        # Check that the participation is valid.
+        if participation is None:
+            raise tornado.web.HTTPError(404)
+
+        self.r_params = self.render_params()
+        self.r_params["participation"] = participation
+        self.r_params["selected_user"] = participation.user
+
+        self.r_params["next_page"] = ["contest", contest_id, "user", user_id, "edit"]
+        invalidate_arguments = dict()
+        invalidate_arguments["participation_id"] = participation.id
+        self.r_params["invalidate_arguments"] = invalidate_arguments
+
+        self.render("advanced_reevaluation.html", **self.r_params)
 
 
 class MessageHandler(BaseHandler):

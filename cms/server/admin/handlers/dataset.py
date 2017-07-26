@@ -82,6 +82,23 @@ class DatasetSubmissionsHandler(BaseHandler):
         self.render("dataset.html", **self.r_params)
 
 
+class AdvancedDatasetSubmissionsHandler(BaseHandler):
+    @require_permission(BaseHandler.PERMISSION_ALL)
+    def get(self, dataset_id):
+        dataset = self.safe_get_item(Dataset, dataset_id)
+        task = dataset.task
+
+        self.r_params = self.render_params()
+        self.r_params["dataset"] = dataset
+
+        invalidate_arguments = dict()
+        self.r_params["next_page"] = ["dataset", dataset_id]
+        invalidate_arguments["dataset_id"] = dataset_id
+        self.r_params["invalidate_arguments"] = invalidate_arguments
+
+        self.render("advanced_reevaluation.html", **self.r_params)
+
+
 class CloneDatasetHandler(BaseHandler):
     """Clone a dataset by duplicating it (on the same task).
 

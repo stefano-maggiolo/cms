@@ -37,3 +37,8 @@
         disabled
 {% end %}
         title="Score" >S</button>
+<button onclick="location.href = '{{ advanced_page }}'"
+{% if not current_user.permission_all %}
+        disabled
+{% end %}
+        title="Advanced Reevaluation" >+</button>

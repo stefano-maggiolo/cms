@@ -4,6 +4,7 @@
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2015 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2016-2017 Peyman Jabbarzade Ganje <peyman.jabarzade@gmail.com>
+# Copyright © 2017 Kiarash Golezardi <kiarashgolezardi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -92,4 +93,5 @@ class ReevaluationButtons(tornado.web.UIModule):
             "views/reevaluation_buttons.html",
             url=url,
             next_page=url(*components),
+            advanced_page=url(*(components + ["advanced"])),
             invalidate_arguments=invalidate_arguments)

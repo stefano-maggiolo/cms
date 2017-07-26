@@ -10,6 +10,7 @@
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2016 Luca Versari <veluca93@gmail.com>
 # Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
+# Copyright © 2017 Kiarash Golezardi <kiarashgolezardi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -37,6 +38,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
+import json
 
 from datetime import datetime, timedelta
 from functools import wraps
@@ -531,6 +533,9 @@ class QueueService(TriggeredService):
                               dataset_id=None,
                               participation_id=None,
                               task_id=None,
+                              testcases=None,
+                              overwrite=None,
+                              force_priority=None,
                               level="compilation"):
         """Request to invalidate some computed data.
 
@@ -583,7 +588,7 @@ class QueueService(TriggeredService):
             # both from the queue and from the pool (i.e., we ignore
             # the workers involved in those operations).
             operations = get_relevant_operations(
-                level, submissions, dataset_id)
+                level, submissions, dataset_id, testcases)
             for operation in operations:
                 try:
                     self.dequeue(operation)
@@ -611,9 +616,11 @@ class QueueService(TriggeredService):
                 # We invalidate the appropriate data and queue the
                 # operations to recompute those data.
                 if level == "compilation":
-                    submission_result.invalidate_compilation()
+                    submission_result.invalidate_compilation(
+                        testcases if overwrite is not False else [])
                 elif level == "evaluation":
-                    submission_result.invalidate_evaluation()
+                    submission_result.invalidate_evaluation(
+                        testcases if overwrite is not False else [])
 
             # There is a small chance that an invalidate won't
             # succeed: if a result is in the pending structure, it
@@ -628,7 +635,8 @@ class QueueService(TriggeredService):
         for id in submission_ids:
             random_service(self.evaluation_services).new_submission(
                 submission_id=id,
-                dataset_id=dataset_id
+                dataset_id=dataset_id,
+                force_priority=force_priority
             )
 
         logger.info("Invalidate successfully completed.")

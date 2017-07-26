@@ -9,6 +9,7 @@
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2016 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
+# Copyright © 2017 Kiarash Golezardi <kiarashgolezardi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -71,6 +72,33 @@ class SubmissionHandler(BaseHandler):
                             .filter(Dataset.task == task)\
                             .order_by(Dataset.description).all()
         self.render("submission.html", **self.r_params)
+
+
+class AdvancedSubmissionHandler(BaseHandler):
+    @require_permission(BaseHandler.PERMISSION_ALL)
+    def get(self, submission_id, dataset_id=None):
+        submission = self.safe_get_item(Submission, submission_id)
+        task = submission.task
+        self.contest = task.contest
+
+        if dataset_id is not None:
+            dataset = self.safe_get_item(Dataset, dataset_id)
+        else:
+            dataset = task.active_dataset
+        assert dataset.task is task
+
+        self.r_params = self.render_params()
+        self.r_params["dataset"] = dataset
+
+        invalidate_arguments = dict()
+        self.r_params["next_page"] = ["submission", submission_id]
+        invalidate_arguments["submission_id"] = submission_id
+        if dataset_id is not None:
+            self.r_params["next_page"] += [dataset_id]
+            invalidate_arguments["dataset_id"] = dataset_id
+        self.r_params["invalidate_arguments"] = invalidate_arguments
+
+        self.render("advanced_reevaluation.html", **self.r_params)
 
 
 class SubmissionFileHandler(FileHandler):

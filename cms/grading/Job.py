@@ -7,6 +7,7 @@
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2013-2017 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
+# Copyright © 2017 Kiarash Golezardi <kiarashgolezardi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -322,9 +323,6 @@ class CompilationJob(Job):
         sr (SubmissionResult): the DB object to fill.
 
         """
-        # This should actually be useless.
-        sr.invalidate_compilation()
-
         # No need to check self.success because this method gets called
         # only if it is True.
 

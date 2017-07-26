@@ -9,6 +9,7 @@
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
 # Copyright © 2016 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
+# Copyright © 2017 Kiarash Golezardi <kiarashgolezardi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -550,11 +551,11 @@ class SubmissionResult(Base):
                 & (SubmissionResult.public_score_details != None)
                 & (SubmissionResult.ranking_score_details != None))  # noqa
 
-    def invalidate_compilation(self):
+    def invalidate_compilation(self, testcases=None):
         """Blank all compilation and evaluation outcomes, and the score.
 
         """
-        self.invalidate_evaluation()
+        self.invalidate_evaluation(testcases)
         self.compilation_outcome = None
         self.compilation_text = None
         self.compilation_tries = 0
@@ -565,14 +566,21 @@ class SubmissionResult(Base):
         self.compilation_sandbox = None
         self.executables = {}
 
-    def invalidate_evaluation(self):
+    def invalidate_evaluation(self, testcases=None):
         """Blank the evaluation outcomes and the score.
 
         """
         self.invalidate_score()
         self.evaluation_outcome = None
         self.evaluation_tries = 0
-        self.evaluations = []
+        if testcases is not None:
+            remain = list()
+            for evaluation in self.evaluations:
+                if evaluation.testcase.codename not in testcases:
+                    remain.append(evaluation)
+            self.evaluations = remain
+        else:
+            self.evaluations = []
 
     def invalidate_score(self):
         """Blank the score.

@@ -10,6 +10,7 @@
 # Copyright © 2014 Artem Iglikov <artem.iglikov@gmail.com>
 # Copyright © 2016 Luca Versari <veluca93@gmail.com>
 # Copyright © 2017 Amir Keivan Mohtashami <akmohtashami97@gmail.com>
+# Copyright © 2017 Kiarash Golezardi <kiarashgolezardi@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -177,7 +178,7 @@ class EvaluationService(Service):
         return operations
 
     @with_post_finish_lock
-    def enqueue_all(self, operations):
+    def enqueue_all(self, operations, force_priority=None):
         """Enqueue all the operations
 
         operations ([ESOperation, int, datetime]): operations, priorities,
@@ -185,6 +186,8 @@ class EvaluationService(Service):
 
         """
         for operation, priority, timestamp in operations:
+            if force_priority is not None:
+                priority = force_priority
             self.enqueue(operation, priority, timestamp)
 
     @with_post_finish_lock
@@ -529,7 +532,7 @@ class EvaluationService(Service):
         return self.get_user_test_operations(user_test)
 
     @rpc_method
-    def new_submission(self, submission_id, dataset_id=None):
+    def new_submission(self, submission_id, dataset_id=None, force_priority=None):
         """This RPC prompts ES of the existence of a new
         submission. ES takes the right countermeasures, i.e., it
         schedules it for compilation.
@@ -549,7 +552,7 @@ class EvaluationService(Service):
                 return
 
             self.enqueue_all(self.get_submission_operations(
-                submission, dataset))
+                submission, dataset), force_priority=force_priority)
 
             session.commit()
 

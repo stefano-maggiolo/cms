@@ -1,0 +1,120 @@
+{% extends base.html %}
+
+{% block core %}
+{% from cmscommon.crypto import parse_authentication %}
+{% from cms.grading.scoretypes import get_score_type %}
+{% set score_types = {} %}
+
+<script>
+    function send_request()
+    {
+        var overwrite = document.getElementById('overwrite').checked;
+        var level = document.getElementById('operation').value;
+        var priority = document.getElementById('priority').value;
+        if (priority == "defualt")
+            priority = null;
+
+        var checks = document.getElementsByName('invalidate-check');
+        var inval = [];
+        for (var i = 0; i < checks.length; i++) {
+              if (!checks[i].checked)
+                  continue;
+              var testcase_codename = checks[i].getAttribute('data-testcase-codename');
+              inval[inval.length] = testcase_codename;
+        }
+
+        cmsrpc_request(
+            'QueueService', 0,
+            'invalidate_submission', {
+{% for key, value in invalidate_arguments.items() %}
+            '{{ key }}': {{ value }},
+{% end %}
+            'testcases': inval,
+            'overwrite': overwrite,
+            'force_priority': priority,
+            'level': level},
+            function(response) { utils.redirect_if_ok('{{ url(*next_page) }}', response); }
+            );
+    }
+
+    function selectAll(select)
+    {
+        var checks = document.getElementsByName('invalidate-check');
+        for (var i = 0; i < checks.length; i++)
+              checks[i].checked = select;
+    }
+
+    function changeAllSelection()
+    {
+        document.getElementById('select-all').checked = false;
+    }
+</script>
+
+<h1>
+{% if "submission_id" in invalidate_arguments %}
+    Reevaluation of submission {{ invalidate_arguments['submission_id'] }}
+{% elif "dataset_id" in invalidate_arguments %}
+    Reevaluation of dataset {{ dataset.description }}
+{% elif "participation_id" in invalidate_arguments %}
+  Reevaluation of submissions of <a href="{{ url("user", selected_user.id) }}">{{ selected_user.username }}</a> in <a href="{{ url("contest", contest.id) }}">{{ contest.name }}</a>
+{% else %}
+  Reevaluation of all sumbissions
+{% end %}
+</h1>
+
+Operation
+<select id="operation">
+    <option value="compilation">Compilation</option>
+    <option value="evaluation">Evaluation</option>
+</select>
+
+Priority
+<select id="priority">
+    <option value="default">Default</option>
+    <option value="0">Extra High</option>
+    <option value="1">High</option>
+    <option value="2">Medium</option>
+    <option value="3">Low</option>
+    <option value="4">Extra Low</option>
+</select>
+
+<br><br>
+
+{% if "submission_id" in invalidate_arguments or "dataset_id" in invalidate_arguments %}
+    <table class="bordered" style="text-align:center">
+        <thead>
+          <tr>
+            <th>Codename</th>
+            <th>Input</th>
+            <th>Output</th>
+            <th><input type="checkbox" id="select-all" onchange="selectAll(this.checked)" /></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for codename, testcase in sorted(dataset.testcases.iteritems()) %}
+          <tr>
+            <td>{{ codename }}</td>
+            <td>
+              <a href="javascript:void(0);" onclick="utils.show_file('input_{{ testcase.codename }}','{{ url("file", testcase.input, "input_%s" % testcase.codename) }}')">Show input</a>
+            </td>
+            <td>
+              <a href="javascript:void(0);" onclick="utils.show_file('output_{{ testcase.codename }}','{{ url("file", testcase.output, "output_%s" % testcase.codename) }}')">Show output</a>
+            </td>
+            <td>
+               <input type="checkbox" name="invalidate-check" onchange="changeAllSelection()" data-testcase-codename="{{ testcase.codename }}" />
+            </td>
+          </tr>
+          {% end %}
+        </tbody>
+      </table>
+{% end %}
+
+<br><br>
+
+<input type="checkbox" id="overwrite" />Do not keep the result for evaluated testcases
+
+<br><br>
+
+<button onclick="send_request()" >Reevaluate!</button>
+
+{% end %}
