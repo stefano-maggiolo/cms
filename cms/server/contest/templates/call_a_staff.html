@@ -6,7 +6,7 @@
 {% from cms import config %}
 
 <div class="page-header">
-    <h1>{{ _("Call a staff") }}</h1>
+    <h1>{{ _("Call staff") }}</h1>
 </div>
 
 <form class="form-horizontal" action="{{ contest_url("callstaff") }}" method="POST">
@@ -15,8 +15,9 @@
     Type of request:
     <select name="request_type" id="request_select" onchange="update_additional_comment(this)" size="4">
       <option selected value="Restroom">Restroom</option>
-      <option value="Handwritten clarification">Handwritten clarification</option>
+      <option value="Spare sheet">Spare sheet</option>
       <option value="Technical problem">Technical problem</option>
+      <option value="Handwritten clarification">Handwritten clarification</option>
       <option value="Other">Other</option>
     </select>
     <button type="submit" class="btn btn-primary">{{ _("Submit") }}</button>

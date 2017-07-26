@@ -183,7 +183,7 @@ $(document).ready(function () {
                                     </a>
                             </li>
                             <li{% if request.path == '/callstaff' %} class="active"{% end %}>
-                                <a href="{{ contest_url("callstaff") }}">{{ _("Call a staff") }}</a>
+                                <a href="{{ contest_url("callstaff") }}">{{ _("Call staff") }}</a>
                             </li>
     {% if actual_phase == 0 or actual_phase == 3 or current_user.unrestricted %}
         {% for t_iter in contest.tasks %}
