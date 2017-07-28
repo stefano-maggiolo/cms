@@ -92,12 +92,12 @@ class JavaJDK(Language):
             return [["/usr/bin/java",
                      "-XX:+UseSerialGC",
                      "-Xbatch", "-XX:-TieredCompilation" ,"-XX:CICompilerCount=1",
-                     "-Xmx512M", "-Xss64M", "-cp",
+                     "-Xmx435M", "-Xss64M", "-cp",
                      executable_filename, main] + args]
         else:
             unzip_command = ["/usr/bin/unzip", executable_filename]
             command = ["/usr/bin/java",
                        "-XX:+UseSerialGC",
                        "-Xbatch", "-XX:-TieredCompilation", "-XX:CICompilerCount=1",
-                       "-Xmx512M", "-Xss64M", main] + args
+                       "-Xmx435M", "-Xss64M", main] + args
             return [unzip_command, command]
