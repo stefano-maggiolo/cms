@@ -239,7 +239,7 @@ class CpsTaskLoader(TaskLoader):
             evaluation_param = "diff"
 
         args["task_type"] = data['task_type']
-        if data['task_type'] != 'OutputOnly' and data['task_type'] != 'Notice':
+        if data['task_type'] != 'Notice':
             args["task_type"] += '2017'
         args["task_type_parameters"] = \
             self._get_task_type_parameters(data, data['task_type'], evaluation_param)
@@ -317,8 +317,8 @@ class CpsTaskLoader(TaskLoader):
             args["score_type"] = "Sum"
             args["score_type_parameters"] = str(100 / number_tests)
         else:
-            args["score_type"] = "GroupMin"
-            parsed_data = []
+            args["score_type"] = "GroupMinWithMaxScore"
+            parsed_data = [100,]
             subtask_no = -1
             add_optional_name = False
             for subtask in subtasks:

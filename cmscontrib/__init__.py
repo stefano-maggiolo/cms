@@ -194,8 +194,8 @@ class BaseImporter(object):
                         # collections when copying values, that
                         # resulted in new objects being added to the
                         # session. We need to investigate it.
-                        temp = new_value[i]
-                        del new_value[i]
+                        temp = new_value[old_len]
+                        del new_value[old_len]
                         old_value.append(temp)
 
             # General case #3: a parent object
