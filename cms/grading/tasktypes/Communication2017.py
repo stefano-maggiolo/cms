@@ -101,7 +101,10 @@ class Communication2017(TaskType):
                 source_filename = filename.replace(".%l", source_ext)
                 source_filenames.append(source_filename)
             commands = language.get_compilation_commands(
-                source_filenames, executable_filename)
+                source_filenames, executable_filename) + language.get_evaluation_commands(
+                executable_filename=executable_filename,
+                main="grader"
+            )
             res[language.name] = commands
         return res
 

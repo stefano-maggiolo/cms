@@ -25,6 +25,7 @@ import logging
 import json
 
 from cms.grading.ParameterTypes import ParameterTypeString
+from cms.grading.languagemanager import LANGUAGES
 from cms.grading.tasktypes.Batch import Batch
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,27 @@ class Batch2017(Batch):
     )
 
     ACCEPTED_PARAMETERS = Batch.ACCEPTED_PARAMETERS + [_USER_MANAGERS]
+
+    def get_compilation_commands(self, submission_format):
+        """See TaskType.get_compilation_commands."""
+        source_filenames = []
+        # If a grader is specified, we add to the command line (and to
+        # the files to get) the corresponding manager.
+        if self._uses_grader():
+            source_filenames.append("grader.%l")
+        source_filenames.append(submission_format[0])
+        executable_filename = submission_format[0].replace(".%l", "")
+        res = dict()
+        for language in LANGUAGES:
+            res[language.name] = language.get_compilation_commands(
+                [source.replace(".%l", language.source_extension)
+                 for source in source_filenames],
+                executable_filename) + language.get_evaluation_commands(
+                executable_filename=executable_filename,
+                main="grader" if self._uses_grader() else executable_filename,
+
+            )
+        return res
 
     def get_user_managers(self, unused_submission_format):
         """See TaskType.get_user_managers."""
