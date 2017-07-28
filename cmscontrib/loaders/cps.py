@@ -252,7 +252,7 @@ class CpsTaskLoader(TaskLoader):
             pas_manager_path = os.path.join(graders_dir, pas_manager)
             if not os.path.exists(pas_manager_path):
                 digest = self.file_cacher.put_file_content(
-                    '', 'Pascal manager for task %s' % name)
+                    ''.encode('utf-8'), 'Pascal manager for task %s' % name)
                 args["managers"][pas_manager] = Manager(pas_manager, digest)
 
         if not os.path.exists(graders_dir):
