@@ -169,7 +169,7 @@ class CpsTaskLoader(TaskLoader):
         if data["task_type"] == 'OutputOnly':
             args["submission_format"] = list()
             for codename in testcase_codenames:
-                args["submission_format"].append(SubmissionFormatElement("output_%s.txt" % codename))
+                args["submission_format"].append(SubmissionFormatElement("%s.out" % codename))
         elif data["task_type"] == 'Notice':
             args["submission_format"] = list()
         else:
