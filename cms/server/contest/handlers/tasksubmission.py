@@ -355,9 +355,13 @@ class SubmitHandler(ContestHandler):
         )
 
         self.sql_session.close()
-
-        random_service(self.application.service.evaluation_services)\
-            .new_submission(submission_id=submission_id)
+        try:
+            random_service(self.application.service.evaluation_services)\
+                .new_submission(submission_id=submission_id)
+        except IndexError:
+            logger.error("No evaluation services found. "
+                         "Leaving the submission to be "
+                         "discovered by sweep. ")
         self.application.service.add_notification(
             username,
             self.timestamp,
