@@ -227,7 +227,7 @@ class CpsTaskLoader(TaskLoader):
         if os.path.exists(checker_src):
             logger.info("Checker found, compiling")
             checker_exe = os.path.join(checker_dir, "checker")
-            os.system("g++ -x c++ -O2 -static -o %s %s" %
+            os.system("g++ -x c++ -std=gnu++14 -O2 -static -o %s %s" %
                       (checker_exe, checker_src))
             digest = self.file_cacher.put_file_from_path(
                 checker_exe,
