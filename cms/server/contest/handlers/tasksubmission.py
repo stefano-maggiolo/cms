@@ -271,11 +271,10 @@ class SubmitHandler(ContestHandler):
                 return
 
         # Check if submitted files are small enough.
-        if any([len(f[1]) > config.max_submission_length
-                for f in files.values()]):
+        if sum([len(f[1]) for f in files.values()]) > config.max_submission_length:
             self._send_error(
                 self._("Submission too big!"),
-                self._("Each source file must be at most %d bytes long.") %
+                self._("Size of each submission must be at most %d bytes.") %
                 config.max_submission_length)
             return
 
