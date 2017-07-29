@@ -629,15 +629,14 @@ class QueueService(TriggeredService):
 
             # Collecting the ids so that we can close the session
             # before the rpcs.
-            submission_ids = [submission.id for submission in submissions]
+            submission_ids = [sr.submission_id for sr in submission_results]
 
         # Finally, we re-enqueue the operations for the submissions.
-        for id in submission_ids:
-            random_service(self.evaluation_services).new_submission(
-                submission_id=id,
-                dataset_id=dataset_id,
-                force_priority=force_priority
-            )
+        random_service(self.evaluation_services).new_submissions(
+            submission_ids=submission_ids,
+            dataset_id=dataset_id,
+            force_priority=force_priority
+        )
 
         logger.info("Invalidate successfully completed.")
 
