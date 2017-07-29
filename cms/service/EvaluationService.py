@@ -187,7 +187,7 @@ class EvaluationService(Service):
         """
         for operation, priority, timestamp in operations:
             if force_priority is not None:
-                priority = force_priority
+                priority = int(force_priority)
             self.enqueue(operation, priority, timestamp)
 
     @with_post_finish_lock
