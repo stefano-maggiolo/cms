@@ -427,8 +427,13 @@ class UserTestHandler(ContestHandler):
 
         self.sql_session.add(user_test)
         self.sql_session.commit()
-        random_service(self.application.service.evaluation_services)\
-            .new_user_test(user_test_id=user_test.id)
+        try:
+            random_service(self.application.service.evaluation_services)\
+                .new_user_test(user_test_id=user_test.id)
+        except IndexError:
+            logger.error("No evaluation services found. "
+                         "Leaving the submission to be "
+                         "discovered by sweep. ")
         self.application.service.add_notification(
             participation.user.username,
             self.timestamp,
