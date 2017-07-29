@@ -632,11 +632,12 @@ class QueueService(TriggeredService):
             submission_ids = [sr.submission_id for sr in submission_results]
 
         # Finally, we re-enqueue the operations for the submissions.
-        random_service(self.evaluation_services).new_submissions(
-            submission_ids=submission_ids,
-            dataset_id=dataset_id,
-            force_priority=force_priority
-        )
+        for idx in range(0, len(submission_ids), 500):
+            random_service(self.evaluation_services).new_submissions(
+                submission_ids=submission_ids[idx:min(idx + 500, len(submission_ids))],
+                dataset_id=dataset_id,
+                force_priority=force_priority
+            )
 
         logger.info("Invalidate successfully completed.")
 
