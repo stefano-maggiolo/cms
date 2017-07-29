@@ -91,13 +91,15 @@ class JavaJDK(Language):
             # the main java class
             return [["/usr/bin/java",
                      "-XX:+UseSerialGC",
-                     "-Xbatch", "-XX:-TieredCompilation" ,"-XX:CICompilerCount=1",
-                     "-Xmx435M", "-Xss64M", "-cp",
+                     "-Xbatch", "-XX:-TieredCompilation",
+                     "-XX:CICompilerCount=1", "-XX:NewRatio=3",
+                     "-Xmx420M", "-Xss64M", "-cp",
                      executable_filename, main] + args]
         else:
             unzip_command = ["/usr/bin/unzip", executable_filename]
             command = ["/usr/bin/java",
                        "-XX:+UseSerialGC",
-                       "-Xbatch", "-XX:-TieredCompilation", "-XX:CICompilerCount=1",
-                       "-Xmx435M", "-Xss64M", main] + args
+                       "-Xbatch", "-XX:-TieredCompilation",
+                       "-XX:CICompilerCount=1", "-XX:NewRatio=3",
+                       "-Xmx420M", "-Xss64M", main] + args
             return [unzip_command, command]
