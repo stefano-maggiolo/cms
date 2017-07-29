@@ -353,6 +353,8 @@ class QueueService(TriggeredService):
         # Shortcircuit the sweeper if instructed to do so by the rest of QS.
         if self.avoid_next_sweepers > 0:
             self.avoid_next_sweepers -= 1
+            logger.info("Sweeper is paused, not running this and next %d.",
+                        self.avoid_next_sweepers)
             return 0
 
         counter = 0
