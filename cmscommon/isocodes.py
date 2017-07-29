@@ -64,6 +64,7 @@ class _make_dict(ContentHandler):
 
 _language_codes = dict()
 _country_codes = dict()
+_country_3_codes = dict()
 
 parse(os.path.join(config.iso_codes_prefix,
                    'share', 'xml', 'iso-codes', 'iso_639.xml'),
@@ -73,6 +74,10 @@ parse(os.path.join(config.iso_codes_prefix,
                    'share', 'xml', 'iso-codes', 'iso_3166.xml'),
       _make_dict(["iso_3166_entries", "iso_3166_entry"],
                  "alpha_2_code", "name", _country_codes))
+parse(os.path.join(config.iso_codes_prefix,
+                   'share', 'xml', 'iso-codes', 'iso_3166.xml'),
+      _make_dict(["iso_3166_entries", "iso_3166_entry"],
+                 "alpha_3_code", "name", _country_3_codes))
 
 
 def is_language_code(code):
@@ -92,8 +97,10 @@ def is_country_code(code):
 
 def translate_country_code(code, locale):
     if code not in _country_codes:
-        raise ValueError("Country code not recognized.")
-
+        if code not in _country_3_codes:
+            raise ValueError("Country code not recognized.")
+        else:
+            return locale.translate(_country_3_codes[code]).split(';')[0]
     return locale.translate(_country_codes[code]).split(';')[0]
 
 
@@ -101,7 +108,8 @@ def is_language_country_code(code):
     tokens = code.split('_')
     if len(tokens) != 2 or \
             tokens[0] not in _language_codes or \
-            tokens[1] not in _country_codes:
+            (tokens[1] not in _country_codes and
+                tokens[1] not in _country_3_codes):
         return False
     return True
 
@@ -110,7 +118,8 @@ def translate_language_country_code(code, locale):
     tokens = code.split('_')
     if len(tokens) != 2 or \
             tokens[0] not in _language_codes or \
-            tokens[1] not in _country_codes:
+            (tokens[1] not in _country_codes and
+                tokens[1] not in _country_3_codes):
         raise ValueError("Language and country code not recognized.")
 
     return "%s (%s)" % (translate_language_code(tokens[0], locale),
