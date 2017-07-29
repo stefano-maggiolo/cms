@@ -328,6 +328,9 @@ class QueueService(TriggeredService):
             self.connect_to(ServiceCoord("EvaluationService", i))
             for i in range(get_service_shards("EvaluationService"))]
 
+        # How many calls to the sweeper will be ignored. Used to
+        # temporarily disable it in case of invalidate.
+        self.avoid_next_sweepers = 0
         self.add_executor(EvaluationExecutor(self))
         self.start_sweeper(117.0)
 
@@ -347,6 +350,11 @@ class QueueService(TriggeredService):
         the queue.
 
         """
+        # Shortcircuit the sweeper if instructed to do so by the rest of QS.
+        if self.avoid_next_sweepers > 0:
+            self.avoid_next_sweepers -= 1
+            return 0
+
         counter = 0
         with SessionGen() as session:
 
@@ -565,6 +573,11 @@ class QueueService(TriggeredService):
 
         """
         logger.info("Invalidation request received.")
+
+        # Avoid running the sweeper for the next 10-ish minutes, to
+        # avoid race conditions between invalidate's requeuing of
+        # submissions and the sweeper's.
+        self.avoid_next_sweepers = 5
 
         # Validate arguments
         # TODO Check that all these objects belong to this contest.
