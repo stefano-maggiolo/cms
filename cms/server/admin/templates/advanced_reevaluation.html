@@ -14,14 +14,19 @@
         if (priority == "default")
             priority = null;
 
+        var have_testcase = false;
         var checks = document.getElementsByName('invalidate-check');
         var inval = [];
         for (var i = 0; i < checks.length; i++) {
               if (!checks[i].checked)
                   continue;
+              have_testcase = true;
               var testcase_codename = checks[i].getAttribute('data-testcase-codename');
               inval[inval.length] = testcase_codename;
         }
+
+        if (!have_testcase)
+            inval = null;
 
         cmsrpc_request(
             'QueueService', 0,
