@@ -92,11 +92,12 @@ $(document).ready(function () {
 
 <div class="page-header row">
     <h1 class="span8">{% raw _("%(name)s (%(short_name)s) <small>submissions</small>") % {"name": escape(task.title), "short_name": escape(task.name)} %}</h1>
+{#
 {% if last_submission_result %}
     <div class="span1 task_score {{ get_score_class(last_submission_result.task_public_score, score_type.max_public_score) }}">
       {{ score_type.format_score(last_submission_result.task_public_score, score_type.max_public_score, last_submission_result.task_public_score_details, task.score_precision, _) }}
     </div>
-{% end %}
+{% end %}  #}
 </div>
 
 <h2 style="margin-bottom: 10px">{{ _("Submit a solution") }}</h2>
