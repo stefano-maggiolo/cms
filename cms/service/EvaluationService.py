@@ -555,6 +555,12 @@ class EvaluationService(Service):
             session.commit()
 
     @rpc_method
+    def new_submissions(self, submission_ids):
+        for submission_id in submission_ids:
+            self.new_submission(submission_id)
+        logger.info("Added %d submissions to queue", len(submission_ids))
+
+    @rpc_method
     def new_user_test(self, user_test_id):
         """This RPC prompts ES of the existence of a new user test. ES
         takes takes the right countermeasures, i.e., it schedules it
