@@ -304,8 +304,6 @@ def get_submissions_operations(session, contest_id=None):
         and priority.
 
     """
-    operations = []
-
     if contest_id is None:
         contest_filter = literal(True)
     else:
@@ -326,13 +324,7 @@ def get_submissions_operations(session, contest_id=None):
             contest_filter &
             (FILTER_SUBMISSION_DATASETS_TO_JUDGE) &
             (SubmissionResult.dataset_id.is_(None)))\
-        .with_entities(Submission.id, Dataset.id,
-                       case([
-                           ((Dataset.id != Task.active_dataset_id) |
-                            (Submission.official != literal(True)),
-                            literal(PriorityQueue.PRIORITY_EXTRA_LOW))
-                           ], else_=literal(PriorityQueue.PRIORITY_HIGH)),
-                       Submission.timestamp)\
+        .with_entities(Submission.id, Dataset.id)\
         .all()
 
     # Retrieve all the compilation operations for submissions
@@ -345,22 +337,8 @@ def get_submissions_operations(session, contest_id=None):
             contest_filter &
             (FILTER_SUBMISSION_DATASETS_TO_JUDGE) &
             (FILTER_SUBMISSION_RESULTS_TO_COMPILE))\
-        .with_entities(Submission.id, Dataset.id,
-                       case([
-                           ((Dataset.id != Task.active_dataset_id) |
-                            (Submission.official != literal(True)),
-                            literal(PriorityQueue.PRIORITY_EXTRA_LOW)),
-                           (SubmissionResult.compilation_tries == 0,
-                            literal(PriorityQueue.PRIORITY_HIGH))
-                           ], else_=literal(PriorityQueue.PRIORITY_MEDIUM)),
-                       Submission.timestamp)\
+        .with_entities(Submission.id, Dataset.id)\
         .all()
-
-    for data in to_compile:
-        submission_id, dataset_id, priority, timestamp = data
-        operations.append((
-            ESOperation(ESOperation.COMPILATION, submission_id, dataset_id),
-            priority, timestamp))
 
     # Retrieve all the evaluation operations for a dataset to
     # judge. Again we need to pick all tuples (submission, dataset,
@@ -381,26 +359,10 @@ def get_submissions_operations(session, contest_id=None):
             (FILTER_SUBMISSION_DATASETS_TO_JUDGE) &
             (FILTER_SUBMISSION_RESULTS_TO_EVALUATE) &
             (Evaluation.id.is_(None)))\
-        .with_entities(Submission.id, Dataset.id,
-                       case([
-                           ((Dataset.id != Task.active_dataset_id) |
-                            (Submission.official != literal(True)),
-                            literal(PriorityQueue.PRIORITY_EXTRA_LOW)),
-                           (SubmissionResult.evaluation_tries == 0,
-                            literal(PriorityQueue.PRIORITY_MEDIUM))
-                           ], else_=literal(PriorityQueue.PRIORITY_LOW)),
-                       Submission.timestamp,
-                       Testcase.codename)\
+        .with_entities(Submission.id, Dataset.id)\
         .all()
 
-    for data in to_evaluate:
-        submission_id, dataset_id, priority, timestamp, codename = data
-        operations.append((
-            ESOperation(
-                ESOperation.EVALUATION, submission_id, dataset_id, codename),
-            priority, timestamp))
-
-    return operations
+    return set(to_compile + to_evaluate)
 
 
 def get_user_tests_operations(session, contest_id=None):
