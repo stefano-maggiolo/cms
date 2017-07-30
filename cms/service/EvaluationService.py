@@ -577,6 +577,41 @@ class EvaluationService(Service):
         logger.info("Added %d submissions to queue", len(submission_ids))
 
     @rpc_method
+    def get_submission_ops(self, submission_id, dataset_id=None):
+        """This RPC returns the operations (including job) for the given
+        submission and dataset.
+
+        """
+        with SessionGen() as session:
+            submission = Submission.get_from_id(submission_id, session)
+            if dataset_id is not None:
+                dataset = Dataset.get_from_id(dataset_id, session)
+            else:
+                dataset = None
+            if submission is None:
+                logger.error("[get_submission_ops] Couldn't find submission "
+                             "%d in the database.", submission_id)
+                return []
+
+            return [
+                (operation.to_list(),
+                 priority,
+                 (timestamp - EvaluationService.EPOCH).total_seconds(),
+                 job)
+                for operation, priority, timestamp, job
+                in self.get_submission_operations(submission, dataset)]
+
+    @rpc_method
+    def get_submissions_ops(self, submission_ids, dataset_id=None):
+        ret = []
+        for submission_id in submission_ids:
+            ret += self.get_submission_ops(
+                submission_id,
+                dataset_id=dataset_id
+            )
+        return ret
+
+    @rpc_method
     def new_user_test(self, user_test_id):
         """This RPC prompts ES of the existence of a new user test. ES
         takes takes the right countermeasures, i.e., it schedules it

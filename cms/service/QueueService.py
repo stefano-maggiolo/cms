@@ -359,18 +359,39 @@ class QueueService(TriggeredService):
 
         counter = 0
         with SessionGen() as session:
-
-            for operation, timestamp, priority in \
-                    get_submissions_operations(session, self.contest_id):
-                if self.enqueue(operation, timestamp, priority):
-                    counter += 1
-
             for operation, timestamp, priority in \
                     get_user_tests_operations(session, self.contest_id):
                 if self.enqueue(operation, timestamp, priority):
                     counter += 1
 
+            submissions_and_datasets = \
+                get_submissions_operations(session, self.contest_id)
+            # Crude approximation, in case of evaluations the number
+            # of operations will be much more than this.
+            counter += len(submissions_and_datasets)
+
+        submissions_by_dataset = dict()
+        for submission_id, dataset_id in submissions_and_datasets:
+            if dataset_id not in submissions_by_dataset:
+                submissions_by_dataset[dataset_id] = set()
+            submissions_by_dataset[dataset_id].add(submission_id)
+
+        for dataset_id in submissions_by_dataset:
+            submission_ids = list(submissions_by_dataset[dataset_id])
+            for idx in range(0, len(submission_ids), 500):
+                random_service(self.evaluation_services)\
+                    .get_submissions_ops(
+                        submission_ids=submission_ids[
+                            idx:min(idx + 500, len(submission_ids))],
+                        dataset_id=dataset_id,
+                        callback=self._missing_operations_enqueue
+                    )
+
         return counter
+
+    def _missing_operations_enqueue(self, operations, error=None):
+        for operation, timestamp, priority, job in operations:
+            self.enqueue(operation, timestamp, priority, job)
 
     @rpc_method
     def workers_status(self):
