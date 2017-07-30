@@ -140,7 +140,10 @@ class EvaluationService(Service):
             for operation, priority, timestamp in submission_get_operations(
                     submission_result, submission, dataset):
                 number_of_operations += 1
-                operations.append([operation, priority, timestamp])
+                job = Job.from_operation(
+                    operation, submission,
+                    dataset).export_to_dict()
+                operations.append([operation, priority, timestamp, job])
 
             # If we got 0 operations, but the submission result is to
             # evaluate, it means that we just need to finalize the
@@ -168,7 +171,10 @@ class EvaluationService(Service):
         for dataset in get_datasets_to_judge(user_test.task):
             for operation, priority, timestamp in user_test_get_operations(
                     user_test, dataset):
-                operations.append([operation, priority, timestamp])
+                job = Job.from_operation(
+                    operation, user_test,
+                    dataset).export_to_dict()
+                operations.append([operation, priority, timestamp, job])
 
         return operations
 
@@ -176,15 +182,15 @@ class EvaluationService(Service):
     def enqueue_all(self, operations):
         """Enqueue all the operations
 
-        operations ([ESOperation, int, datetime]): operations, priorities,
-            timestamps
+        operations ([ESOperation, int, datetime, dict]): operations,
+            priorities, timestamps, jobs
 
         """
-        for operation, priority, timestamp in operations:
-            self.enqueue(operation, priority, timestamp)
+        for operation, priority, timestamp, job in operations:
+            self.enqueue(operation, priority, timestamp, job)
 
     @with_post_finish_lock
-    def enqueue(self, operation, priority, timestamp):
+    def enqueue(self, operation, priority, timestamp, job=None):
         """Push an operation in the queue.
 
         Push an operation in the operation queue if the submission is
@@ -193,22 +199,24 @@ class EvaluationService(Service):
         operation (ESOperation): the operation to put in the queue.
         priority (int): the priority of the operation.
         timestamp (datetime): the time of the submission.
+        job (dict|None): the job associated; if None will be computed
 
         return (bool): True if pushed, False if not.
 
         """
-        with SessionGen() as session:
-            dataset = Dataset.get_from_id(
-                operation.dataset_id, session)
-            if operation.for_submission():
-                object_ = Submission.get_from_id(
-                    operation.object_id, session)
-            else:
-                object_ = UserTest.get_from_id(
-                    operation.object_id, session)
-            job = Job.from_operation(
-                operation, object_,
-                dataset).export_to_dict()
+        if job is None:
+            with SessionGen() as session:
+                dataset = Dataset.get_from_id(
+                    operation.dataset_id, session)
+                if operation.for_submission():
+                    object_ = Submission.get_from_id(
+                        operation.object_id, session)
+                else:
+                    object_ = UserTest.get_from_id(
+                        operation.object_id, session)
+                job = Job.from_operation(
+                    operation, object_,
+                    dataset).export_to_dict()
         return self.queue_service.enqueue(
             operation=operation.to_list(),
             priority=priority,
@@ -278,8 +286,9 @@ class EvaluationService(Service):
                 return True, [
                     [op.to_dict(),
                      priority,
-                     (timestamp - EvaluationService.EPOCH).total_seconds()]
-                    for op, priority, timestamp in new_operations]
+                     (timestamp - EvaluationService.EPOCH).total_seconds(),
+                     job_]
+                    for op, priority, timestamp, job_ in new_operations]
 
             if type_ == ESOperation.EVALUATION:
                 if len(object_result.evaluations) == len(dataset.testcases):
@@ -304,8 +313,9 @@ class EvaluationService(Service):
         return True, [
             [op.to_dict(),
              priority,
-             (timestamp - EvaluationService.EPOCH).total_seconds()]
-            for op, priority, timestamp in new_operations]
+             (timestamp - EvaluationService.EPOCH).total_seconds(),
+             job_]
+            for op, priority, timestamp, job_ in new_operations]
 
     def write_results_one_row(self, session, object_result, operation, job):
         """Write to the DB a single result.
