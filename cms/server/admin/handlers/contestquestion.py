@@ -52,9 +52,39 @@ class QuestionsHandler(BaseHandler):
         self.contest = self.safe_get_item(Contest, contest_id)
 
         self.r_params = self.render_params()
-        self.r_params["questions"] = self.sql_session.query(Question)\
+        try:
+            self.get_argument("operation")
+            try:
+                show_ignored_questions =\
+                    self.get_argument("show_ignored_questions_checkbox")
+                self.r_params["show_ignored_questions"] =\
+                    show_ignored_questions
+            except tornado.MissingArgumentError:
+                self.r_params["show_ignored_questions"] = 'off'
+            try:
+                show_answered_questions = \
+                    self.get_argument("show_answered_questions_checkbox")
+                self.r_params["show_answered_questions"] =\
+                    show_answered_questions
+            except tornado.MissingArgumentError:
+                self.r_params["show_answered_questions"] = 'off'
+        except tornado.MissingArgumentError:
+            self.r_params["show_ignored_questions"] = 'on'
+            self.r_params["show_answered_questions"] = 'on'
+
+        questions = self.sql_session.query(Question)\
             .join(Participation)\
             .filter(Participation.contest_id == contest_id)\
+
+        if self.r_params["show_answered_questions"] == 'off':
+            for q in questions.all():
+                print(q.reply_timestamp)
+            questions = questions.filter(Question.reply_timestamp == None)
+
+        if self.r_params["show_ignored_questions"] == 'off':
+            questions = questions.filter(Question.ignored == 'False')
+
+        self.r_params["questions"] = questions\
             .order_by(Question.question_timestamp.desc())\
             .order_by(Question.id).all()
         self.render("questions.html", **self.r_params)

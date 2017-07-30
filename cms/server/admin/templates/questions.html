@@ -38,6 +38,20 @@ utils.show_page("questions", 1);
   <h1>Questions</h1>
 </div>
 
+<form name="filter_submissions" action="{{ url("contest", contest.id, "questions") }}" method="get">
+  {% if show_ignored_questions == "on" %}
+    Show ignored submissions: <input type="checkbox" name="show_ignored_questions_checkbox" checked/>
+  {% else %}
+    Show ignored submissions: <input type="checkbox" name="show_ignored_questions_checkbox" />
+  {% end %}
+  {% if show_answered_questions == "on" %}
+    Show answered submissions: <input type="checkbox" name="show_answered_questions_checkbox" checked/>
+  {% else %}
+    Show answered submissions: <input type="checkbox" name="show_answered_questions_checkbox" />
+  {% end %}
+  <input type="submit" name="operation" value="Filter">
+</form>
+
 {% if questions != [] %}
 <div id="questions" class="notifications">
   <div id="page_selector_questions"></div>
