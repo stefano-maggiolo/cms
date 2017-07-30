@@ -434,6 +434,8 @@ class QueueService(TriggeredService):
 
         if isinstance(job, dict):
             operation.job = Job.import_from_dict_with_type(job)
+        else:
+            logger.info("Operation without job!")
 
         # enqueue() returns the number of successful pushes.
         return super(QueueService, self).enqueue(
@@ -531,9 +533,9 @@ class QueueService(TriggeredService):
             # priority, and timestamp of the operation.
             self.enqueue(operation, PriorityQueue.PRIORITY_LOW, datetime.now())
         else:
-            for operation, priority, timestamp in new_operations:
+            for operation, priority, timestamp, job in new_operations:
                 self.enqueue(
-                    ESOperation.from_dict(operation), priority, timestamp)
+                    ESOperation.from_dict(operation), priority, timestamp, job)
 
     @rpc_method
     @with_post_finish_lock
