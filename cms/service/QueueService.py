@@ -663,7 +663,7 @@ class QueueService(TriggeredService):
 
             # Collecting the ids so that we can close the session
             # before the rpcs.
-            submission_ids = [sr.submission_id for sr in submission_results]
+            submission_ids = [submission.id for submission in submissions]
 
         # Finally, we re-enqueue the operations for the submissions.
         for idx in range(0, len(submission_ids), 500):
