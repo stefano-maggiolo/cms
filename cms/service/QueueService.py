@@ -48,7 +48,7 @@ import gevent.lock
 
 from cms import ServiceCoord, get_service_shards, random_service
 from cms.io import Executor, TriggeredService, rpc_method
-from cms.db import SessionGen
+from cms.db import SessionGen, Dataset
 from cms.grading.Job import JobGroup, Job
 from cms.io import PriorityQueue
 from cms.service import get_submissions, get_submission_results
@@ -204,7 +204,6 @@ class EvaluationExecutor(Executor):
                     ratio, ret)
         return ret
 
-    @report_length("_operation_queue", "pending_submissions")
     def execute(self, entries):
         """Execute a batch of operations in the queue.
 
@@ -238,7 +237,6 @@ class EvaluationExecutor(Executor):
                     self._currently_executing = []
                     break
 
-    @report_length("_operation_queue", "pending_submissions")
     def enqueue(self, *args, **kwargs):
         return super(EvaluationExecutor, self).enqueue(*args, **kwargs)
 
@@ -611,12 +609,17 @@ class QueueService(TriggeredService):
 
         with SessionGen() as session:
             # First we load all involved submissions.
+            if dataset_id is not None:
+                dataset = Dataset.get_from_id(dataset_id, session)
+                task_id_for_submissions = dataset.task_id
+            if task_id is not None:
+                task_id_for_submissions = task_id
             submissions = get_submissions(
                 # Give contest_id only if all others are None.
                 contest_id
-                if {participation_id, task_id, submission_id} == {None}
+                if {participation_id, task_id_for_submissions, submission_id} == {None}
                 else None,
-                participation_id, task_id, submission_id, session)
+                participation_id, task_id_for_submissions, submission_id, session)
 
             # Then we get all relevant operations, and we remove them
             # both from the queue and from the pool (i.e., we ignore
