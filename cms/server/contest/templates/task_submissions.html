@@ -59,6 +59,25 @@ update_submission_row = function (submission_id, data) {
     } else if (data["status"] != {{ SubmissionResult.COMPILATION_FAILED }}) {
         schedule_update_submission_row(submission_id);
     }
+
+    if (data["status"] == {{ SubmissionResult.SCORED }} || data["status"] == {{ SubmissionResult.COMPILATION_FAILED }}) {
+        var task_score = $(".page-header .task_score");
+        if (data["task_public_score"] !== undefined) {
+            task_score.html(data["task_public_score"] + " / " + data["max_public_score"]);
+            task_score.removeClass("hidden");
+            task_score.removeClass("score_0");
+            task_score.removeClass("score_0_100");
+            task_score.removeClass("score_100");
+            task_score.addClass(get_score_class(data["task_public_score"], data["max_public_score"]));
+        } else if (data["task_score"] !== undefined) {
+            task_score.html(data["task_score"] + " / " + data["max_score"]);
+            task_score.removeClass("hidden");
+            task_score.removeClass("score_0");
+            task_score.removeClass("score_0_100");
+            task_score.removeClass("score_100");
+            task_score.addClass(get_score_class(data["task_score"], data["max_score"]));
+        }
+    }
 };
 
 schedule_update_submission_row = function (submission_id) {
@@ -92,12 +111,14 @@ $(document).ready(function () {
 
 <div class="page-header row">
     <h1 class="span8">{% raw _("%(name)s (%(short_name)s) <small>submissions</small>") % {"name": escape(task.title), "short_name": escape(task.name)} %}</h1>
-{#
+
 {% if last_submission_result %}
     <div class="span1 task_score {{ get_score_class(last_submission_result.task_public_score, score_type.max_public_score) }}">
       {{ score_type.format_score(last_submission_result.task_public_score, score_type.max_public_score, last_submission_result.task_public_score_details, task.score_precision, _) }}
     </div>
-{% end %}  #}
+{% else %}
+    <div class="span1 task_score hidden"></div>
+{% end %}
 </div>
 
 <h2 style="margin-bottom: 10px">{{ _("Submit a solution") }}</h2>

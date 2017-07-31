@@ -491,6 +491,17 @@ class SubmissionStatusHandler(ContestHandler):
         elif data["status"] == SubmissionResult.COMPILATION_FAILED:
             data["status_text"] = "%s <a class=\"details\">%s</a>" % (
                 self._("Compilation failed"), self._("details"))
+            score_type = get_score_type(dataset=task.active_dataset)
+            if score_type.max_public_score > 0:
+                data["max_public_score"] = \
+                    round(score_type.max_public_score, task.score_precision)
+                data["task_public_score"] = \
+                    round(sr.task_public_score, task.score_precision)
+            if submission.token is not None:
+                data["max_score"] = \
+                    round(score_type.max_score, task.score_precision)
+                data["task_score"] = \
+                    round(sr.task_score, task.score_precision)
         elif data["status"] == SubmissionResult.EVALUATING:
             data["status_text"] = self._("Evaluating...")
         elif data["status"] == SubmissionResult.SCORING:
@@ -508,6 +519,8 @@ class SubmissionStatusHandler(ContestHandler):
                 data["public_score_message"] = score_type.format_score(
                     sr.public_score, score_type.max_public_score,
                     sr.public_score_details, task.score_precision, self._)
+                data["task_public_score"] = \
+                    round(sr.task_public_score, task.score_precision)
             if submission.token is not None:
                 data["max_score"] = \
                     round(score_type.max_score, task.score_precision)
@@ -516,6 +529,8 @@ class SubmissionStatusHandler(ContestHandler):
                 data["score_message"] = score_type.format_score(
                     sr.score, score_type.max_score,
                     sr.score_details, task.score_precision, self._)
+                data["task_score"] = \
+                    round(sr.task_score, task.score_precision)
 
         self.write(data)
 
