@@ -109,7 +109,6 @@ class PendingResults(object):
         """Wait until there is a result available."""
         self._event.wait()
 
-    @report_length("_results", "pending_results")
     def add_result(self, operation, job):
         """Add one result to the pending operations.
 
@@ -121,8 +120,6 @@ class PendingResults(object):
             self._results[operation] = job
             self._event.set()
 
-    @report_length("_writes", "pending_writes")
-    @report_length("_results", "pending_results")
     def pop(self):
         """Extract one of the pending result for writing.
 
@@ -141,7 +138,6 @@ class PendingResults(object):
             self._writes.add(operation)
             return operation, job
 
-    @report_length("_writes", "pending_writes")
     def finalize(self, operation):
         """Mark the operation as fully completed and written."""
         with self._lock:
@@ -332,7 +328,7 @@ class QueueService(TriggeredService):
         # temporarily disable it in case of invalidate.
         self.avoid_next_sweepers = 0
         self.add_executor(EvaluationExecutor(self))
-        self.start_sweeper(117.0)
+        self.start_sweeper(1200.0)
 
         self.add_timeout(self.check_workers_timeout, None,
                          QueueService.WORKER_TIMEOUT_CHECK_TIME
@@ -602,7 +598,7 @@ class QueueService(TriggeredService):
         # Avoid running the sweeper for the next 10-ish minutes, to
         # avoid race conditions between invalidate's requeuing of
         # submissions and the sweeper's.
-        self.avoid_next_sweepers = 5
+        self.avoid_next_sweepers = 1
 
         # Validate arguments
         # TODO Check that all these objects belong to this contest.
