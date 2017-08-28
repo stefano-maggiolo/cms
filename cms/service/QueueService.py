@@ -50,6 +50,7 @@ from cms.db import SessionGen
 from cms.grading.Job import JobGroup, Job
 from cms.service import get_submissions, get_submission_results
 
+from .atomicint import AtomicInt
 from .esoperations import ESOperation, get_relevant_operations, \
     get_submissions_operations, get_user_tests_operations
 from .workerpool import WorkerPool
@@ -309,6 +310,9 @@ class QueueService(TriggeredService):
 
         self.add_executor(EvaluationExecutor(self))
         self.start_sweeper(117.0)
+        # How many other code paths are pausing the sweeper. If this is > 0,
+        # the sweeper will not run.
+        self._sweeper_blockers = AtomicInt()
 
         self.add_timeout(self.check_workers_timeout, None,
                          QueueService.WORKER_TIMEOUT_CHECK_TIME
@@ -326,6 +330,11 @@ class QueueService(TriggeredService):
         the queue.
 
         """
+        if self._sweeper_blockers.get() > 0:
+            logger.info("Sweeper not running, %d code paths asked to pause it",
+                        self._sweeper_blockers.get())
+            return 0
+
         counter = 0
         with SessionGen() as session:
 
@@ -601,7 +610,15 @@ class QueueService(TriggeredService):
 
         # Finally, we re-enqueue the operations for the submissions.
         for id in submission_ids:
-            random_service(self.evaluation_services).new_submission(id)
+            # The sweeper will not run concurrently with the invalidate
+            # function because of the post-finish lock. But it may run while
+            # the ESs are processing the new submissions, so we add blockers
+            # and remove them when the ESs reply.
+            self._sweeper_blockers.get_and_add(1)
+            random_service(self.evaluation_services).new_submission(
+                submission_id=id,
+                callback=lambda unused, error:
+                    self._sweeper_blockers.get_and_add(-1))
 
         logger.info("Invalidate successfully completed.")
 
