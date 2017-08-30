@@ -620,22 +620,78 @@ class QueueService(TriggeredService):
             submission_ids = [submission.id for submission in submissions]
 
         # Finally, we re-enqueue the operations for the submissions.
-        for id in submission_ids:
-            # The sweeper will not run concurrently with the invalidate
-            # function because of the post-finish lock. But it may run while
-            # the ESs are processing the new submissions, so we add blockers
-            # and remove them when the ESs reply.
-            self._sweeper_blockers.get_and_add(1)
-            try:
-                random_service(self.evaluation_services).new_submission(
-                    submission_id=id,
-                    callback=lambda unused, error:
-                        self._sweeper_blockers.get_and_add(-1))
-            except IndexError:
-                logger.error("No EvaluationService is connected, invalidated "
-                             "operations will not be enqueued now.")
+        self._enqueue_submissions_via_es(submission_ids)
 
         logger.info("Invalidate successfully completed.")
+
+    def _enqueue_submissions_via_es(self, submission_ids):
+        """Send a bunch of submission ids to ES for enqueuing.
+
+        submission_ids ([int]): a list of submission_ids that an ES needs to
+            create operations for, and enqueue back in QS.
+
+        """
+        def _send(es, submission_ids):
+            """Internal function to actually send safely.
+
+            The sweeper will not run concurrently with the invalidate
+            function because of the post-finish lock. But it may run while
+            the ESs are processing the new submissions, so we add blockers
+            and remove them when the ESs reply.
+
+            es (Service): the ES to send the submissions to.
+            submission_ids ([int]): ids of the submissions to send.
+
+            return (boolean): True if send was successful.
+
+            """
+            if not es.connected:
+                return False
+            self._sweeper_blockers.get_and_add(1)
+            es.new_submissions(
+                submission_ids=submission_ids,
+                callback=lambda unused, error:
+                    self._sweeper_blockers.get_and_add(-1))
+            return True
+
+        def _error():
+            logger.error("Unable to enqueue submissions via ES. "
+                         "No EvaluationService is running.")
+
+        n_sub = len(submission_ids)
+        # If we don't have many submissions, just send everything to one ES.
+        if n_sub < 20:
+            try:
+                es = random_service(self.evaluation_services)
+                ok = _send(es, submission_ids)
+            except IndexError:
+                ok = False
+
+            if not ok:
+                _error()
+            return
+
+        # Otherwise split somehow equally.
+        live_ess = [s for s in self.evaluation_services if s.connected]
+        n_ess = len(live_ess)
+        if n_ess == 0:
+            _error()
+            return
+
+        # Minimum size such that batches * ess >= submissions.
+        batches_size = (n_sub + n_ess - 1) / n_ess
+        breaks = range(0, n_sub, batches_size) + [n_sub]
+        submission_ids_not_sent = []
+        for es_idx, (start, end) in enumerate(zip(breaks, breaks[1:])):
+            ok = _send(live_ess[es_idx], submission_ids[start:end])
+            if not ok:
+                submission_ids_not_sent += submission_ids[start:end]
+
+        if submission_ids_not_sent != []:
+            if len(submission_ids_not_sent) < n_sub:
+                self._enqueue_submissions_via_es(submission_ids_not_sent)
+            else:
+                _error()
 
     @rpc_method
     def disable_worker(self, shard):
