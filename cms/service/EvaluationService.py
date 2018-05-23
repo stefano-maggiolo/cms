@@ -410,25 +410,22 @@ class EvaluationService(TriggeredService):
             operation, priority, timestamp) > 0
 
     @with_post_finish_lock
-    def action_finished(self, data, shard, error=None):
+    def action_finished(self, data, shard, to_consider, to_ignore, error=None):
         """Callback from a worker, to signal that is finished some
         action (compilation or evaluation).
 
         data (dict): the JobGroup, exported to dict.
         shard (int): the shard finishing the action.
+        to_consider ([ESOperation]): list of operations whose result can be
+            used.
+        to_ignore ([ESOperation]): list of operations whose result should be
+            ignored.
+        error (string|None): error from the worker, if not None.
 
         """
-        # We notify the pool that the worker is available again for
-        # further work (no matter how the current request turned out,
-        # even if the worker encountered an error). If the pool
-        # informs us that the data produced by the worker has to be
-        # ignored (by returning True) we interrupt the execution of
-        # this method and do nothing because in that case we know the
-        # operation has returned to the queue and perhaps already been
-        # reassigned to another worker.
-        to_ignore = self.get_executor().pool.release_worker(shard)
-        if to_ignore is True:
-            logger.info("Ignored result from worker %s as requested.", shard)
+        # Early return if all operations have to be ignored.
+        if len(to_consider) == 0:
+            logger.info("Ignored all results from worker %s.", shard)
             return
 
         job_group = None
@@ -452,10 +449,10 @@ class EvaluationService(TriggeredService):
                 if job.success:
                     logger.info("`%s' succeeded.", operation)
                 else:
-                    logger.error("`%s' failed, see worker logs and (possibly) "
-                                 "sandboxes at '%s'.",
+                    logger.error("`%s' failed, see worker logs and "
+                                 "(possibly) sandboxes at '%s'.",
                                  operation, " ".join(job.sandboxes))
-                if isinstance(to_ignore, list) and operation in to_ignore:
+                if operation in to_ignore:
                     logger.info("`%s' result ignored as requested", operation)
                 else:
                     self.result_cache.add(operation, Result(job, job.success))

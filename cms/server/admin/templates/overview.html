@@ -110,13 +110,17 @@ function update_workers_status(response)
     for (var i in response['data'])
     {
         var job = "";
-        if ($.isArray(response['data'][i]['operations'])) {
-            job = utils.repr_job(response['data'][i]['operations'][0]);
+        var worker_status = response['data'][i]['status'];
+        if (worker_status == 'active') {
+            var operations = response['data'][i]['operations'];
+            job = utils.repr_job(operations[0]);
             if (response['data'][i]['operations'].length > 1) {
-                job += ' and ' + (response['data'][i]['operations'].length - 1) + ' more';
+                job += ' and ' + (operations.length - 1) + ' more';
             }
-        } else {
-            job = utils.repr_job(response['data'][i]['operations']);
+        } else if (worker_status == 'disabled') {
+            job = 'Worker disabled';
+        } else if (worker_status == 'inactive') {
+            job = 'Worker waiting';
         }
         var start_time = utils.repr_time_ago(response['data'][i]['start_time']);
         var connected = "Yes";
@@ -126,7 +130,7 @@ function update_workers_status(response)
         strings.push('<td style="text-align: center;">' + connected + '</td>');
         strings.push('<td>' + job + '</td>');
         strings.push('<td>' + start_time + '</td>');
-        if (response['data'][i]['operations'] == "disabled") {
+        if (response['data'][i]['status'] == "disabled") {
             strings.push('<td><button onclick="javascript:enable_worker(' + i + '); return true;"' +
 {% if not admin.permission_all %}
                          ' disabled' +
