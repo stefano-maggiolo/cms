@@ -129,6 +129,7 @@ setup(
     cmdclass={"build_py": build_py_and_l10n},
     scripts=["scripts/cmsLogService",
              "scripts/cmsScoringService",
+             "scripts/cmsQueueService",
              "scripts/cmsEvaluationService",
              "scripts/cmsWorker",
              "scripts/cmsResourceService",

@@ -51,7 +51,7 @@ from werkzeug.wsgi import SharedDataMiddleware
 
 from cms.server.contest.jinja2_toolbox import CWS_ENVIRONMENT
 from cmscommon.binary import hex_to_bin
-from cms import ConfigError, ServiceCoord, config
+from cms import ConfigError, ServiceCoord, config, get_service_shards
 from cms.io import WebService
 from cms.db.filecacher import FileCacher
 from cms.locale import get_translations
@@ -127,8 +127,10 @@ class ContestWebServer(WebService):
         self.translations = get_translations()
 
         self.file_cacher = FileCacher(self)
-        self.evaluation_service = self.connect_to(
-            ServiceCoord("EvaluationService", 0))
+        self.evaluation_services = [
+            self.connect_to(ServiceCoord("EvaluationService", i))
+            for i in range(get_service_shards("EvaluationService"))]
+        print(self.evaluation_services)
         self.scoring_service = self.connect_to(
             ServiceCoord("ScoringService", 0))
 

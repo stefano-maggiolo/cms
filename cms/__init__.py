@@ -47,6 +47,7 @@ __all__ = [
     # util
     "mkdir", "rmtree", "utf8_decoder", "get_safe_shard", "get_service_address",
     "get_service_shards", "contest_id_from_args", "default_argument_parser",
+    "random_service",
     # plugin
     "plugin_list", "plugin_lookup",
 ]
@@ -78,5 +79,5 @@ TOKEN_MODE_MIXED = "mixed"
 from .conf import Address, ServiceCoord, ConfigError, async_config, config
 from .util import mkdir, rmtree, utf8_decoder, get_safe_shard, \
     get_service_address, get_service_shards, contest_id_from_args, \
-    default_argument_parser
+    default_argument_parser, random_service
 from .plugin import plugin_list, plugin_lookup

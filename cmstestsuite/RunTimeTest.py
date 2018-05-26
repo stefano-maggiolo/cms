@@ -90,6 +90,9 @@ def main():
         "-w", "--workers", action="store", type=int, default=4,
         help="set the number of workers to use (default 4)")
     parser.add_argument(
+        "-e", "--evaluation_services", action="store", type=int, default=2,
+        help="set the number of evaluation services to use (default 2)")
+    parser.add_argument(
         "-l", "--cpu_limits", action="append", default=[],
         help="set maximum CPU percentage for a set of services, for example: "
              "'-l .*Server:40' limits servers to use 40%% of a CPU or less; "
@@ -123,6 +126,7 @@ def main():
         cpu_limits.append((regex, limit))
 
     runner = TestRunner(test_list, workers=args.workers,
+                        evaluations=args.evaluation_services,
                         cpu_limits=cpu_limits)
     runner.submit_tests(concurrent_submit_and_eval=False)
     runner.log_elapsed_time()

@@ -41,7 +41,7 @@ import re
 
 import tornado.web
 
-from cms import config
+from cms import config, random_service
 from cms.db import UserTest, UserTestResult
 from cms.grading.languagemanager import get_language
 from cms.server import multi_contest
@@ -150,8 +150,13 @@ class UserTestHandler(ContestHandler):
             logger.info("Sent error: `%s' - `%s'", e.subject, e.text)
             self.notify_error(e.subject, e.text)
         else:
-            self.service.evaluation_service.new_user_test(
-                user_test_id=user_test.id)
+            try:
+                random_service(self.service.evaluation_service)\
+                    .new_user_test(user_test_id=user_test.id)
+            except IndexError:
+                logger.debug("No EvaluationService is connected, cannot "
+                             "notify about the new submission.")
+
             self.notify_success(N_("Test received"),
                                 N_("Your test has been received "
                                    "and is currently being executed."))

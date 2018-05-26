@@ -31,11 +31,12 @@ from future.builtins import *  # noqa
 import argparse
 import chardet
 import errno
+import grp
 import logging
 import netifaces
 import os
+import random
 import sys
-import grp
 
 import gevent
 import gevent.socket
@@ -190,6 +191,18 @@ def get_service_shards(service):
         except KeyError:
             return i
         i += 1
+
+
+def random_service(services):
+    """Return a random connected service.
+
+    service ([Service]): a list of services.
+    returns (Service): a random, connected service.
+
+    raise (IndexError): if there are no connected services.
+
+    """
+    return random.choice([s for s in services if s.connected])
 
 
 def default_argument_parser(description, cls, ask_contest=None):

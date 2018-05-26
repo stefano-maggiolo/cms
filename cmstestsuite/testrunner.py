@@ -45,7 +45,8 @@ logger = logging.getLogger(__name__)
 
 
 class TestRunner(object):
-    def __init__(self, test_list, contest_id=None, workers=1, cpu_limits=None):
+    def __init__(self, test_list, contest_id=None, workers=1, evaluations=8,
+                 cpu_limits=None):
         self.start_time = datetime.datetime.now()
         self.last_end_time = self.start_time
 
@@ -65,6 +66,7 @@ class TestRunner(object):
 
         self.num_users = 0
         self.workers = workers
+        self.evaluations = evaluations
 
         if CONFIG["TEST_DIR"] is not None:
             # Set up our expected environment.
@@ -297,14 +299,17 @@ class TestRunner(object):
 
         # We start now only the services we need in order to submit and
         # we start the other ones while the submissions are being sent
-        # out. A submission can arrive after ES's first sweep, but
+        # out. A submission can arrive after QS's first sweep, but
         # before CWS connects to ES; if so, it will be ignored until
         # ES's second sweep, making the test flaky due to timeouts. By
         # waiting for ES to start before submitting, we ensure CWS can
         # send the notification for all submissions.
         self.ps.start("ContestWebServer", contest=self.contest_id)
         if concurrent_submit_and_eval:
-            self.ps.start("EvaluationService", contest=self.contest_id)
+            self.ps.start("QueueService", contest=self.contest_id)
+            for shard in range(self.evaluations):
+                self.ps.start("EvaluationService", shard,
+                              contest=self.contest_id)
         self.ps.wait()
 
         self.ps.start("ProxyService", contest=self.contest_id)
@@ -332,7 +337,10 @@ class TestRunner(object):
                 self.failures.append((test, lang, str(f)))
 
         if not concurrent_submit_and_eval:
-            self.ps.start("EvaluationService", contest=self.contest_id)
+            self.ps.start("QueueService", contest=self.contest_id)
+            for shard in range(self.evaluations):
+                self.ps.start("EvaluationService", shard,
+                              contest=self.contest_id)
         self.ps.wait()
 
     def wait_for_evaluation(self):
