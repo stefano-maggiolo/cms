@@ -43,9 +43,6 @@ from six import itervalues
 import logging
 
 from datetime import datetime
-from functools import wraps
-
-import gevent.lock
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
@@ -62,20 +59,6 @@ from .esoperations import ESOperation, submission_get_operations, \
 
 
 logger = logging.getLogger(__name__)
-
-
-def with_post_finish_lock(func):
-    """Decorator for locking on self.post_finish_lock.
-
-    Ensures that no more than one decorated function is executing at
-    the same time.
-
-    """
-    @wraps(func)
-    def wrapped(self, *args, **kwargs):
-        with self.post_finish_lock:
-            return func(self, *args, **kwargs)
-    return wrapped
 
 
 class EvaluationService(Service):
@@ -97,29 +80,6 @@ class EvaluationService(Service):
         super(EvaluationService, self).__init__(shard)
 
         self.contest_id = contest_id
-
-        # This lock is used to avoid inserting in the queue (which
-        # itself is already thread-safe) an operation which is already
-        # being processed. Such operation might be in one of the
-        # following state:
-        # 1. in the queue;
-        # 2. extracted from the queue by the executor, but not yet
-        #    dispatched to a worker;
-        # 3. being processed by a worker ("in the worker pool");
-        # 4. being processed by action_finished, but with the results
-        #    not yet written to the database.
-        # 5. with results written in the database.
-        #
-        # The methods enqueuing operations already check that the
-        # operation is not in state 5, and enqueue() checks that it is
-        # not in the first three states.
-        #
-        # Therefore, the lock guarantees that the methods adding
-        # operations to the queue (_missing_operations,
-        # invalidate_submission, enqueue) are not executed
-        # concurrently with action_finished to avoid picking
-        # operations in state 4.
-        self.post_finish_lock = gevent.lock.RLock()
 
         self.queue_service = self.connect_to(
             ServiceCoord("QueueService", 0))
@@ -180,7 +140,6 @@ class EvaluationService(Service):
 
         return operations
 
-    @with_post_finish_lock
     def enqueue_all(self, operations):
         """Enqueue all the operations
 
@@ -191,7 +150,6 @@ class EvaluationService(Service):
         for operation, priority, timestamp, job in operations:
             self.enqueue(operation, priority, timestamp, job)
 
-    @with_post_finish_lock
     def enqueue(self, operation, priority, timestamp, job=None):
         """Push an operation in the queue.
 
@@ -225,7 +183,6 @@ class EvaluationService(Service):
             timestamp=(timestamp - EvaluationService.EPOCH).total_seconds(),
             job=job)
 
-    @with_post_finish_lock
     @rpc_method
     def write_result(self, operation, job):
         """Receive worker results from QS and writes them to the DB.
