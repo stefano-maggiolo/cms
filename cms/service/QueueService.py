@@ -242,16 +242,11 @@ class EvaluationExecutor(Executor):
             raise
 
 
-def with_post_finish_lock(func):
-    """Decorator for locking on self.post_finish_lock.
-
-    Ensures that no more than one decorated function is executing at
-    the same time.
-
-    """
+def with_operation_lifecycle_lock(func):
+    """Decorator for locking on self._operation_lifecycle_lock."""
     @wraps(func)
     def wrapped(self, *args, **kwargs):
-        with self.post_finish_lock:
+        with self._operation_lifecycle_lock:
             return func(self, *args, **kwargs)
     return wrapped
 
@@ -272,28 +267,15 @@ class QueueService(TriggeredService):
 
         self.contest_id = contest_id
 
-        # This lock is used to avoid inserting in the queue (which
-        # itself is already thread-safe) an operation which is already
-        # being processed. Such operation might be in one of the
-        # following state:
-        # 1. in the queue;
-        # 2. extracted from the queue by the executor, but not yet
-        #    dispatched to a worker;
-        # 3. being processed by a worker ("in the worker pool");
-        # 4. being processed by action_finished, but with the results
-        #    not yet written to the database.
-        # 5. with results written in the database.
-        #
-        # The methods enqueuing operations already check that the
-        # operation is not in state 5, and enqueue() checks that it is
-        # not in the first three states.
-        #
-        # Therefore, the lock guarantees that the methods adding
-        # operations to the queue (_missing_operations,
-        # invalidate_submission, enqueue) are not executed
-        # concurrently with action_finished to avoid picking
-        # operations in state 4.
-        self.post_finish_lock = gevent.lock.RLock()
+        # This lock is used to protect the times in which operations change
+        # state within their lifecycle in QS. More precisely, when this lock is
+        # free, we can be sure that an operation in QS is either:
+        # 1. in the executor (that is, either in the queue, extracted for the
+        #    next available worker, or running in a worker);
+        # 2. in the pending results data structure (that is, either waiting
+        #    to be sent to an ES, or waiting for ES to return from writing to
+        #    the DB).
+        self._operation_lifecycle_lock = gevent.lock.RLock()
 
         # Data structure holding pending results.
         self.pending = PendingResults()
@@ -319,7 +301,7 @@ class QueueService(TriggeredService):
                          .total_seconds(),
                          immediately=False)
 
-    @with_post_finish_lock
+    @with_operation_lifecycle_lock
     def _missing_operations(self):
         """Look in the database for submissions that have not been compiled or
         evaluated for no good reasons. Put the missing operation in
@@ -383,7 +365,7 @@ class QueueService(TriggeredService):
             self.enqueue(operation, priority, timestamp)
         return True
 
-    @with_post_finish_lock
+    @with_operation_lifecycle_lock
     @rpc_method
     def enqueue(self, operation, priority, timestamp, job=None):
         """Push an operation in the queue.
@@ -415,7 +397,7 @@ class QueueService(TriggeredService):
         return super(QueueService, self).enqueue(
             operation, priority, timestamp) > 0
 
-    @with_post_finish_lock
+    @with_operation_lifecycle_lock
     def action_finished(self, data, shard, error=None):
         """Callback from a worker, to signal that is finished some
         action (compilation or evaluation).
@@ -509,7 +491,7 @@ class QueueService(TriggeredService):
                     ESOperation.from_dict(operation), priority, timestamp, job)
 
     @rpc_method
-    @with_post_finish_lock
+    @with_operation_lifecycle_lock
     def invalidate_submission(self,
                               contest_id=None,
                               submission_id=None,
@@ -634,8 +616,8 @@ class QueueService(TriggeredService):
         def _send(es, submission_ids):
             """Internal function to actually send safely.
 
-            The sweeper will not run concurrently with the invalidate
-            function because of the post-finish lock. But it may run while
+            The sweeper will not run concurrently with the invalidate function
+            because of the operation lifecycle lock. But it may run while
             the ESs are processing the new submissions, so we add blockers
             and remove them when the ESs reply.
 
