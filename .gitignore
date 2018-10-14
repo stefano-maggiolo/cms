@@ -11,3 +11,5 @@ cms.egg-info
 cache/
 lib/
 log/
+node_modules/
+yarn-error.log
