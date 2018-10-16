@@ -15,6 +15,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as $ from "jquery";
+
+import { DataStore } from "./DataStore";
+
 function format_time(time, full) {
     var h = Math.floor(time / 3600);
     var m = Math.floor((time % 3600) / 60);
@@ -150,3 +154,5 @@ var TimeView = new function () {
         $("#TimeView_time").text(time_str);
     };
 };
+
+export { TimeView, format_time };

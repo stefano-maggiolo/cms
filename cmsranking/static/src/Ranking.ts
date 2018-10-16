@@ -15,6 +15,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+require("../style/Ranking");
+
+// To include them in the bundle since they are only linked from Python.
+require("../img/logo.png");
+require("../img/face.png");
+require("../img/flag.png");
+
+import * as $ from "jquery";
+
+import { DataStore } from "./DataStore";
+import { HistoryStore } from "./HistoryStore";
+import { Overview } from "./Overview";
+import { Scoreboard } from "./Scoreboard";
+import { TeamSearch } from "./TeamSearch";
+import { TimeView } from "./TimeView";
+import { UserDetail } from "./UserDetail";
+
 if (!window.console) {
     window.console = new Object();
 }

@@ -200,3 +200,5 @@ var Chart = new function () {
         context.fill();
     };
 };
+
+export { Chart };

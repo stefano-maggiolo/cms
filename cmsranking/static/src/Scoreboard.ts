@@ -15,6 +15,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as $ from "jquery";
+
+import { DataStore, round_to_str } from "./DataStore";
+import { UserDetail } from "./UserDetail";
+
 var escapeHTML = (function() {
     var escapeMap = {
         '&' : '&amp;',
@@ -496,3 +501,5 @@ var Scoreboard = new function () {
         $frame.scrollTop(scroll);
     };
 };
+
+export { Scoreboard };

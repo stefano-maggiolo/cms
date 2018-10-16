@@ -74,3 +74,5 @@ var Config = new function () {
         return "history";
     }
 };
+
+export { Config };

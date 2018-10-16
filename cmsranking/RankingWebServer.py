@@ -447,7 +447,7 @@ class ImageHandler:
 class RootHandler:
 
     def __init__(self, location):
-        self.path = os.path.join(location, "Ranking.html")
+        self.path = os.path.join(location, "index.html")
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)

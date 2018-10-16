@@ -2,7 +2,7 @@
 
 root = true
 
-[*]
+[*.py]
 charset = utf-8
 indent_style = space
 indent_size = 4
@@ -11,5 +11,13 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.html]
+indent_style = space
+indent_size = 2
+
+[*.ts]
+indent_style = space
+indent_size = 2
+
+[*.json]
 indent_style = space
 indent_size = 2

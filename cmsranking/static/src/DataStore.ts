@@ -15,6 +15,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as $ from "jquery";
+
+import { Config } from "./Config";
+
 function round(value, ndigits) {
     value *= Math.pow(10, ndigits);
     value = Math.round(value);
@@ -673,8 +677,8 @@ var DataStore = new function () {
         var equal = 1;
 
         for (var i in list) {
-            user = list[i];
-            score = user["global"];
+            const user = list[i];
+            const score = user["global"];
 
             if (score === prev_score) {
                 equal += 1;
@@ -1205,3 +1209,5 @@ var DataStore = new function () {
         delete old_data["selected"];
     });
 };
+
+export { DataStore, round_to_str };

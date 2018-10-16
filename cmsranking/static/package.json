@@ -1,0 +1,46 @@
+{
+  "name": "cmsranking",
+  "license": "AGPL-3.0",
+  "private": true,
+  "scripts": {
+    "build": "webpack --progress --config webpack.config.ts -p",
+    "dev-build": "webpack --progress --config webpack.config.ts -d",
+    "watch": "webpack --progress --config webpack.config.ts -d --watch",
+  },
+  "babel": {
+    "presets": [
+      "@babel/typescript",
+      "@babel/preset-env"
+    ],
+    "plugins": [
+      "@babel/proposal-class-properties",
+      "@babel/proposal-object-rest-spread"
+    ]
+  },
+  "dependencies": {
+    "jquery": "^3.3.1",
+    "raphael": "^2.2.7"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-typescript": "^7.1.0",
+    "@types/jquery": "^3.3.18",
+    "@types/webpack": "^4.4.17",
+    "babel-loader": "^8.0.4",
+    "clean-webpack-plugin": "^0.1.19",
+    "css-loader": "^1.0.0",
+    "file-loader": "^2.0.0",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "mini-css-extract-plugin": "^0.4.4",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.1.3",
+    "url-loader": "^1.1.2",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2"
+  }
+}

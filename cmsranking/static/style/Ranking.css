@@ -439,7 +439,7 @@ abbr {
 }
 
 #Scoreboard_head tr th.sel {
-    background-image: url('img/tick_black.png');
+    background-image: url('../img/tick_black.png');
     background-repeat: no-repeat;
     background-position: center;
 }
@@ -472,7 +472,7 @@ abbr {
  */
 
 #Scoreboard_body tr td.sel {
-    background: url('img/tick_black.png') no-repeat center transparent;
+    background: url('../img/tick_black.png') no-repeat center transparent;
     opacity: 0;
     -webkit-user-select: none;
        -moz-user-select: none;
@@ -490,7 +490,7 @@ abbr {
 }
 
 #Scoreboard_body tr.selected td.sel {
-    background: url('img/tick_white.png') no-repeat center transparent;
+    background: url('../img/tick_white.png') no-repeat center transparent;
     border: 1px solid rgba(0,0,0,0.2);
     border-radius: 4px;
     opacity: 1;

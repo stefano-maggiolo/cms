@@ -67,7 +67,8 @@ class Config:
             and bin_path.startswith(sys.real_prefix))
         self.installed = bin_in_installed_path and not bin_is_python
 
-        self.web_dir = pkg_resources.resource_filename("cmsranking", "static")
+        self.web_dir = pkg_resources.resource_filename(
+            "cmsranking", os.path.join("static", "dist"))
         if self.installed:
             self.log_dir = os.path.join("/", "var", "local", "log",
                                         "cms", "ranking")

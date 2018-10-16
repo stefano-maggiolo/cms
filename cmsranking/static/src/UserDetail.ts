@@ -15,7 +15,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// format_time is defined in TimeView
+import * as $ from "jquery";
+
+import { Chart } from "./Chart";
+import { Config } from "./Config";
+import { DataStore, round_to_str } from "./DataStore";
+import { HistoryStore } from "./HistoryStore";
+import { format_time } from "./TimeView";
 
 var UserDetail = new function () {
     var self = this;
@@ -318,3 +324,5 @@ var UserDetail = new function () {
         $("#UserDetail_bg").removeClass("open");
     };
 };
+
+export { UserDetail };

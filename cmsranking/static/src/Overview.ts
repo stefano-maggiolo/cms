@@ -15,6 +15,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as $ from "jquery";
+import * as Raphael from "raphael";
+
+import { DataStore } from "./DataStore";
+
 var Overview = new function () {
     var self = this;
 
@@ -594,3 +599,5 @@ var Overview = new function () {
        rank "markers" need to be adjusted!
      */
 };
+
+export { Overview };

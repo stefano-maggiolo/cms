@@ -59,9 +59,10 @@ PACKAGE_DATA = {
         "*/LC_MESSAGES/*.*",
     ],
     "cmsranking": [
-        "static/img/*.*",
-        "static/lib/*.*",
-        "static/*.*",
+        "static/dist/*.*",
+        "static/dist/css/*.*",
+        "static/dist/img/*.*",
+        "static/dist/js/*.*",
     ],
     "cmstestsuite": [
         "code/*.*",

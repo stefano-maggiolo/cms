@@ -15,6 +15,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as $ from "jquery";
+
+import { DataStore } from "./DataStore";
+
 var TeamSearch = new function () {
     var self = this;
 
@@ -195,3 +199,5 @@ var TeamSearch = new function () {
         }
     };
 };
+
+export { TeamSearch };

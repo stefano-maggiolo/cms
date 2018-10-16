@@ -15,6 +15,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as $ from "jquery";
+
+import { Config } from "./Config";
+import { DataStore } from "./DataStore";
+
 var HistoryStore = new function () {
     var self = this;
 
@@ -310,3 +315,5 @@ var HistoryStore = new function () {
         return result;
     };
 };
+
+export { HistoryStore };

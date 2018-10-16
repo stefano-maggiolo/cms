@@ -3,36 +3,12 @@
     <head>
         <meta charset='utf-8'/>
         <link rel="shortcut icon" href="img/favicon.ico" />
-        <link rel='stylesheet' href='Ranking.css'>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
-        <script>
-if (typeof jQuery == 'undefined') {
-    document.write(unescape("%3Cscript src='lib/jquery.js'%3E%3C/script%3E"));
-}
-if (!("EventSource" in window)) {
-    document.write(unescape("%3Cscript src='lib/eventsource.js'%3E%3C/script%3E"));
-}
-        </script>
-        <script src="lib/raphael.js"></script>
-        <!--[if lt IE 9]>
-            <script src="lib/explorercanvas.js"></script>
-        <![endif]-->
-        <script src="Config.js"></script>
-        <script src="DataStore.js"></script>
-        <script src="HistoryStore.js"></script>
-        <script src="Chart.js"></script>
-        <script src="UserDetail.js"></script>
-        <script src="TimeView.js"></script>
-        <script src="TeamSearch.js"></script>
-        <script src="Overview.js"></script>
-        <script src="Scoreboard.js"></script>
-        <script src="Ranking.js"></script>
         <title>Ranking</title>
     </head>
     <body>
         <div id="OuterFrame">
             <div id="LogoPanel">
-                <img src="logo" alt="Logo" />
+                <img id="LogoImg" alt="Logo" />
             </div>
             <div id="UpperPanel">
                 <div id="ConnectionStatus_box">
@@ -75,11 +51,11 @@ if (!("EventSource" in window)) {
                 <img id="UserDetail_close" src="img/close.png" alt="Close"/>
                 <div id="UserDetail_header">
                     <div id="UserDetail_summary">
-                        <img id="UserDetail_face" src="" alt="Face"/>
+                        <img id="UserDetail_face" alt="Face"/>
                         <div id="UserDetail_f_name"></div>
                         <div id="UserDetail_l_name"></div>
                         <div id="UserDetail_team"></div>
-                        <img id="UserDetail_flag" src="" alt="Flag"/>
+                        <img id="UserDetail_flag" alt="Flag"/>
                     </div>
                     <div id="UserDetail_navigator">
                         <table>
@@ -109,5 +85,8 @@ if (!("EventSource" in window)) {
                 </div>
             </div>
         </div>
+        <script type="text/javascript">
+            document.getElementById("LogoImg").src = "logo";
+        </script>
     </body>
 </html> 
