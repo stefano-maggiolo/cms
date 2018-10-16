@@ -46,7 +46,7 @@ var Chart = new function () {
 
         // the intervals of allowed x values
         var x_size = 0;
-        for (var i in x_int) {
+        for (const i in x_int) {
             x_size += x_int[i][1] - x_int[i][0];
         }
 
@@ -81,7 +81,7 @@ var Chart = new function () {
         context.moveTo(pad_l, pad_t);
         context.lineTo(wid - pad_r, pad_t);
         context.stroke();
-        for (var i in marks) {
+        for (const i in marks) {
             context.beginPath();
             context.moveTo(get_x(0), get_y(marks[i]));
             context.lineTo(get_x(x_size), get_y(marks[i]));
@@ -95,11 +95,11 @@ var Chart = new function () {
         if (y_min != y_max)
             context.fillText(y_min.toString(), 18, hei - pad_b);
         context.fillText(y_max.toString(), 18, pad_t);
-        for (var i in marks) {
+        for (const i in marks) {
             context.fillText(marks[i].toString(), 18, get_y(marks[i]));
         }
 
-        var i = 0  // index of current interval
+        let i = 0  // index of current interval
         var x_cum = 0  // cumulated x value (sum of the size of the first i-1 intervals)
         var x_pos = 0  // current x value
         var y_pos = y_def  // current y value
@@ -190,10 +190,10 @@ var Chart = new function () {
         context.fillStyle = "rgba(" + color[0] + "," + color[1] + "," + color[2] + ",0.3)";
         context.beginPath();
         context.moveTo(get_x(tops[0][0]), get_y(tops[0][1]));
-        for (var i = 0; i < tops.length; i += 1) {
+        for (let i = 0; i < tops.length; i += 1) {
             context.lineTo(get_x(tops[i][0]), get_y(tops[i][1]));
         }
-        for (var i = bots.length - 1; i >= 0; i -= 1) {
+        for (let i = bots.length - 1; i >= 0; i -= 1) {
             context.lineTo(get_x(bots[i][0]), get_y(bots[i][1]));
         }
         context.closePath();

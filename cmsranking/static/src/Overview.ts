@@ -19,6 +19,7 @@ import * as $ from "jquery";
 import * as Raphael from "raphael";
 
 import { DataStore } from "./DataStore";
+import { Scoreboard } from "./Scoreboard";
 
 var Overview = new function () {
     var self = this;
@@ -144,14 +145,14 @@ var Overview = new function () {
             { color: "#cd7f32", ratio: 3/12 },
             { color: "#000000", ratio: 6/12 }
         ];
-        var stops = [];
+        const stops = [];
         var base = 0;
         for (var i = 0; i < ranks.length; i++) {
             stops.push(ranks[i].color + ":" + (base + (ranks[i].ratio / 3)) * 100);
             stops.push(ranks[i].color + ":" + (base + (ranks[i].ratio / 3 * 2)) * 100);
             base += ranks[i].ratio;
         }
-        stops = stops.join("-");
+        const stops_str = stops.join("-");
 
         if (self.rank_axis) {
             self.rank_axis.attr("path", d);
@@ -159,7 +160,7 @@ var Overview = new function () {
             // Since raphael does not support gradients for stroke, we set the fill attr to it,
             // then move the value to stroke.
             self.rank_axis = self.paper.path(d).attr({
-                "fill": "270-" + stops,
+                "fill": "270-" + stops_str,
                 "stroke-width": 3,
                 "stroke-linecap": "round"
             });
@@ -255,7 +256,7 @@ var Overview = new function () {
         } else if (score >= max_score) {
             return self.SCORE_STEPS + 1;
         } else {
-            return parseInt(score / max_score * self.SCORE_STEPS) + 1;
+            return Math.floor(score / max_score * self.SCORE_STEPS) + 1;
         }
     };
 

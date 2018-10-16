@@ -17,6 +17,7 @@
 
 import * as $ from "jquery";
 
+import { Config } from "./Config";
 import { DataStore, round_to_str } from "./DataStore";
 import { UserDetail } from "./UserDetail";
 
@@ -286,7 +287,7 @@ var Scoreboard = new function () {
         } else if (score >= max_score) {
             return "score_100";
         } else {
-            var rel_score = parseInt(score / max_score * 10) * 10;
+            var rel_score = Math.floor(score / max_score * 10) * 10;
             return "score_" + rel_score + "_" + (rel_score + 10);
         }
     };
@@ -382,10 +383,10 @@ var Scoreboard = new function () {
 
     // This callback is called by the DataStore when a user is created.
     self.create_user = function (u_id, user) {
-        var $row = $(self.make_row(user));
-        $row.children("td[data-sort_key=" + self.sort_key + "]").addClass("sort_key");
+        var row = $(self.make_row(user));
+        row.children("td[data-sort_key=" + self.sort_key + "]").addClass("sort_key");
 
-        user["row"] = $row[0];
+        user["row"] = row[0];
         user["index"] = self.user_list.length;
         self.user_list.push(user);
 

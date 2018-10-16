@@ -17,6 +17,7 @@
 
 import * as $ from "jquery";
 
+import { Config } from "./Config";
 import { DataStore } from "./DataStore";
 
 var TeamSearch = new function () {
@@ -108,7 +109,7 @@ var TeamSearch = new function () {
         self.sel = new Object();
         self.cnt = new Object();
 
-        for (var t_id in DataStore.teams) {
+        for (const t_id in DataStore.teams) {
             self.sel[t_id] = 0;
             self.cnt[t_id] = DataStore.teams[t_id]["users"].length;
         }
@@ -119,7 +120,7 @@ var TeamSearch = new function () {
         // in lexicographic order of name
         for (var i in DataStore.team_list) {
             var team = DataStore.team_list[i];
-            var t_id = team["key"];
+            const t_id = team["key"];
             inner_html += " \
 <div class=\"item\" data-team=\"" + t_id + "\"> \
     <label> \
@@ -179,7 +180,7 @@ var TeamSearch = new function () {
     };
 
     self.update = function () {
-        var search_text = $("#TeamSearch_input").val();
+        var search_text = <string>$("#TeamSearch_input").val();
 
         if (search_text == "") {
             $('div.item', self.t_body).removeClass("hidden");

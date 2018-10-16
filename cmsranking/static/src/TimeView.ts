@@ -20,13 +20,13 @@ import * as $ from "jquery";
 import { DataStore } from "./DataStore";
 
 function format_time(time, full) {
-    var h = Math.floor(time / 3600);
-    var m = Math.floor((time % 3600) / 60);
-    var s = Math.floor(time % 60);
-    h = full && h < 10 ? "0" + h : "" + h;
-    m = m < 10 ? "0" + m : "" + m;
-    s = s < 10 ? "0" + s : "" + s;
-    return (h + ":" + m + ":" + s);
+    const h = Math.floor(time / 3600);
+    const m = Math.floor((time % 3600) / 60);
+    const s = Math.floor(time % 60);
+    const h_str = full && h < 10 ? "0" + h : "" + h;
+    const m_str = m < 10 ? "0" + m : "" + m;
+    const s_str = s < 10 ? "0" + s : "" + s;
+    return (h_str + ":" + m_str + ":" + s_str);
 };
 
 function _get_time() {

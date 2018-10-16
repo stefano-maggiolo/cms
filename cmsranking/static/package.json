@@ -6,6 +6,7 @@
     "build": "webpack --progress --config webpack.config.ts -p",
     "dev-build": "webpack --progress --config webpack.config.ts -d",
     "watch": "webpack --progress --config webpack.config.ts -d --watch",
+    "check-types": "tsc"
   },
   "babel": {
     "presets": [

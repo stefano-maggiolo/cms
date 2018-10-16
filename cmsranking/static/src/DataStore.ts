@@ -702,7 +702,7 @@ var DataStore = new function () {
              */
             var new_rank = 1;
 
-            for (var u_id in self.users) {
+            for (const u_id in self.users) {
                 if (self.users[u_id]["global"] > user["global"]) {
                     new_rank += 1;
                 }
@@ -1128,7 +1128,7 @@ var DataStore = new function () {
     }
 
     self.init_selections = function () {
-        $.each(self.users, function (u_id) {
+        $.each(self.users, function (u_id: string) {
             var color_idx = parseInt(localStorage.getItem("cms.rws.selection.users." + u_id));
             if (color_idx > 0)
             {
@@ -1137,24 +1137,24 @@ var DataStore = new function () {
         });
 
         $(window).on("storage", function (event) {
-            event = event.originalEvent;
-            if (event.storageArea == localStorage)
+            const origEvent = <StorageEvent>event.originalEvent;
+            if (origEvent.storageArea == localStorage)
             {
-                if (event.key === null)
+                if (origEvent.key === null)
                 {
                     // Triggered by a .clear().
                     $.each(self.users, function (u_id) {
                         self.set_selected(u_id, false);
                     });
                 }
-                else if (event.key.lastIndexOf("cms.rws.selection.users.", 0) === 0)
+                else if (origEvent.key.lastIndexOf("cms.rws.selection.users.", 0) === 0)
                 {
-                    var u_id = event.key.substr(24);
-                    if (event.oldValue === null && event.newValue !== null)
+                    var u_id = origEvent.key.substr(24);
+                    if (origEvent.oldValue === null && origEvent.newValue !== null)
                     {
-                        self.set_selected(u_id, true, parseInt(event.newValue));
+                        self.set_selected(u_id, true, parseInt(origEvent.newValue));
                     }
-                    else if (event.oldValue !== null && event.newValue === null)
+                    else if (origEvent.oldValue !== null && origEvent.newValue === null)
                     {
                         self.set_selected(u_id, false);
                     }

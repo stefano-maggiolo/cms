@@ -298,8 +298,8 @@ var UserDetail = new function () {
         } else {
             for (var i in self.submissions[task_id]) {
                 var submission = self.submissions[task_id][i];
-                time = submission["time"] - DataStore.contests[DataStore.tasks[task_id]["contest"]]["begin"];
-                time = format_time(time);
+                const time_seconds = submission["time"] - DataStore.contests[DataStore.tasks[task_id]["contest"]]["begin"];
+                const time = format_time(time_seconds, false);
                 res += " \
         <tr> \
             <td>" + time + "</td> \
