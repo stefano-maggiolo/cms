@@ -15,64 +15,62 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Config = new function () {
-    var self = this;
-
-    self.get_contest_list_url = function () {
+class Config {
+    public static get_contest_list_url() {
         return "contests/";
-    };
+    }
 
-    self.get_contest_read_url = function (c_key) {
+    public static get_contest_read_url(c_key) {
         return "contests/" + c_key;
-    };
+    }
 
-    self.get_task_list_url = function () {
+    public static get_task_list_url() {
         return "tasks/";
-    };
+    }
 
-    self.get_task_read_url = function (t_key) {
+    public static get_task_read_url(t_key) {
         return "tasks/" + t_key;
-    };
+    }
 
-    self.get_team_list_url = function () {
+    public static get_team_list_url() {
         return "teams/";
-    };
+    }
 
-    self.get_team_read_url = function (t_key) {
+    public static get_team_read_url(t_key) {
         return "teams/" + t_key;
-    };
+    }
 
-    self.get_user_list_url = function () {
+    public static get_user_list_url() {
         return "users/";
-    };
+    }
 
-    self.get_user_read_url = function (u_key) {
+    public static get_user_read_url(u_key) {
         return "users/" + u_key;
-    };
+    }
 
-    self.get_flag_url = function (t_key) {
+    public static get_flag_url(t_key) {
         return "flags/" + t_key;
-    };
+    }
 
-    self.get_face_url = function (u_key) {
+    public static get_face_url(u_key) {
         return "faces/" + u_key;
-    };
+    }
 
-    self.get_submissions_url = function (u_key) {
+    public static get_submissions_url(u_key) {
         return "sublist/" + u_key;
-    };
+    }
 
-    self.get_score_url = function () {
+    public static get_score_url() {
         return "scores";
-    };
+    }
 
-    self.get_event_url = function (last_event_id) {
+    public static get_event_url(last_event_id) {
         return "events?last_event_id=" + last_event_id;
-    };
+    }
 
-    self.get_history_url = function () {
+    public static get_history_url() {
         return "history";
     }
-};
+}
 
 export { Config };
