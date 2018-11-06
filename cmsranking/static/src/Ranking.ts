@@ -38,7 +38,7 @@ $(document).ready(function() {
         UserDetail.init();
         TimeView.init();
         TeamSearch.init();
-        Overview.init();
+        Overview.getInstance();
         Scoreboard.init();
     });
 });
