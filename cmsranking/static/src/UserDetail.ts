@@ -23,158 +23,192 @@ import { DataStore, round_to_str } from "./DataStore";
 import { HistoryStore } from "./HistoryStore";
 import { format_time } from "./TimeView";
 
-var UserDetail = new function () {
-    var self = this;
+class UserDetail {
+    private static instance: UserDetail;
 
-    self.init = function () {
-        self.historyStore = HistoryStore.getInstance();
-        $("#UserDetail_bg").click(function (event) {
+    private historyStore: HistoryStore;
+
+    private f_name_label: JQuery<HTMLElement>;
+    private l_name_label: JQuery<HTMLElement>;
+    private team_label: JQuery<HTMLElement>;
+    private flag_image: JQuery<HTMLElement>;
+    private face_image: JQuery<HTMLElement>;
+    private title_label: JQuery<HTMLElement>;
+    private navigator: JQuery<HTMLElement>;
+    private submission_table: JQuery<HTMLElement>;
+    private score_chart: HTMLCanvasElement;
+    private rank_chart: HTMLCanvasElement;
+
+    private active;
+    private user_id: string;
+    private user;
+    private data_fetched: number;
+    private task_s;
+    private task_r;
+    private contest_s;
+    private contest_r;
+    private submissions;
+    private global_s: any[];
+    private global_r: any[];
+
+    public static getInstance() {
+      if (!UserDetail.instance) {
+        UserDetail.instance = new UserDetail();
+      }
+      return UserDetail.instance;
+    }
+
+    private constructor() {
+        this.historyStore = HistoryStore.getInstance();
+        $("#UserDetail_bg").click((event) => {
             if (event.target == event.currentTarget) {
-                self.hide();
+                this.hide();
             }
         });
 
-        $("#UserDetail_close").click(function () {
-            self.hide();
+        $("#UserDetail_close").click(() => {
+            this.hide();
         });
 
-        $(document).keyup(function (event) {
+        $(document).keyup((event) => {
             if (event.keyCode == 27) { // ESC key
-                self.hide();
+                this.hide();
             }
         });
 
-        self.f_name_label = $('#UserDetail_f_name');
-        self.l_name_label = $('#UserDetail_l_name');
-        self.team_label = $('#UserDetail_team');
-        self.flag_image = $('#UserDetail_flag');
-        self.face_image = $('#UserDetail_face');
-        self.title_label = $('#UserDetail_title');
+        this.f_name_label = $('#UserDetail_f_name');
+        this.l_name_label = $('#UserDetail_l_name');
+        this.team_label = $('#UserDetail_team');
+        this.flag_image = $('#UserDetail_flag');
+        this.face_image = $('#UserDetail_face');
+        this.title_label = $('#UserDetail_title');
 
-        self.navigator = $('#UserDetail_navigator table tbody');
-        self.submission_table = $('#UserDetail_submissions');
+        this.navigator = $('#UserDetail_navigator table tbody');
+        this.submission_table = $('#UserDetail_submissions');
 
-        self.score_chart = $('#UserDetail_score_chart')[0];
-        self.rank_chart = $('#UserDetail_rank_chart')[0];
+        this.score_chart =
+          $('#UserDetail_score_chart')[0] as HTMLCanvasElement;
+        this.rank_chart =
+          $('#UserDetail_rank_chart')[0] as HTMLCanvasElement;
 
-        self.navigator.on("click", "td.btn", function () {
-            if (self.active !== null) {
-                self.active.removeClass("active");
+        this.navigator.on("click", "td.btn", () => {
+            if (this.active !== null) {
+                this.active.removeClass("active");
             }
-            self.active = $(this).parent();
-            self.active.addClass("active");
+            this.active = $(this).parent();
+            this.active.addClass("active");
 
-            if (self.active.hasClass('global')) {
-                self.show_global();
-            } else if (self.active.hasClass('contest')) {
-                self.show_contest(self.active.attr('data-contest'));
-            } else if (self.active.hasClass('task')) {
-                self.show_task(self.active.attr('data-task'));
+            if (this.active.hasClass('global')) {
+                this.show_global();
+            } else if (this.active.hasClass('contest')) {
+                this.show_contest(this.active.attr('data-contest'));
+            } else if (this.active.hasClass('task')) {
+                this.show_task(this.active.attr('data-task'));
             }
         });
 
-        window.addEventListener("hashchange", self.toggle_visibility_from_hash);
-        self.toggle_visibility_from_hash();
+        window.addEventListener("hashchange", this.toggle_visibility_from_hash.bind(this));
+        this.toggle_visibility_from_hash();
     };
 
-    self.get_current_hash = function () {
+    private get_current_hash() {
         return window.location.hash.substr(1);
-    };
+    }
 
-    self.toggle_visibility_from_hash = function () {
-        var user_id = self.get_current_hash();
+    private toggle_visibility_from_hash() {
+        var user_id = this.get_current_hash();
         if (user_id == "") {
             // No user requested, hide the details if they were open.
-            self.hide();
+            this.hide();
         } else if (!DataStore.users.hasOwnProperty(user_id)) {
             // Non-existing user, do as if the request was without the hash.
             window.history.replaceState(
                 {}, "", window.location.href.replace(/#.*$/, ''));
-            self.hide();
+            this.hide();
         } else {
             // Some valid user requested, show the details.
-            self.show(user_id);
+            this.show(user_id);
         }
-    };
+    }
 
-    self.show = function (user_id) {
-        self.user_id = user_id;
-        self.user = DataStore.users[user_id];
-        self.data_fetched = 0;
+    private show(user_id) {
+        this.user_id = user_id;
+        this.user = DataStore.users[user_id];
+        this.data_fetched = 0;
 
-        if (self.get_current_hash() != user_id) {
+        if (this.get_current_hash() != user_id) {
             window.history.pushState({}, "", "#" + user_id);
         }
         window.document.title =
-            "Ranking - " + self.user["f_name"] + " " + self.user["l_name"];
+            "Ranking - " + this.user["f_name"] + " " + this.user["l_name"];
 
-        self.historyStore.request_update(self.history_callback);
+        this.historyStore.request_update(this.history_callback.bind(this));
 
         $.ajax({
-            url: Config.get_submissions_url(self.user_id),
+            url: Config.get_submissions_url(this.user_id),
             dataType: "json",
-            success: self.submissions_callback,
+            success: this.submissions_callback.bind(this),
             error: function () {
-                console.error("Error while getting the submissions for " + self.user_id);
+                console.error("Error while getting the submissions for " + this.user_id);
             }
         });
-    };
-
-    self.history_callback = function () {
-        self.task_s = new Object();
-        self.task_r = new Object();
-        for (var t_id in DataStore.tasks) {
-            self.task_s[t_id] = self.historyStore.get_score_history_for_task(self.user_id, t_id);
-            self.task_r[t_id] = self.historyStore.get_rank_history_for_task(self.user_id, t_id);
-        }
-
-        self.contest_s = new Object();
-        self.contest_r = new Object();
-        for (var c_id in DataStore.contests) {
-            self.contest_s[c_id] = self.historyStore.get_score_history_for_contest(self.user_id, c_id);
-            self.contest_r[c_id] = self.historyStore.get_rank_history_for_contest(self.user_id, c_id);
-        }
-
-        self.global_s = self.historyStore.get_score_history(self.user_id);
-        self.global_r = self.historyStore.get_rank_history(self.user_id);
-
-        self.data_fetched += 1;
-        self.do_show();
     }
 
-    self.submissions_callback = function (data) {
-        self.submissions = new Object();
+    private history_callback() {
+        this.task_s = new Object();
+        this.task_r = new Object();
         for (var t_id in DataStore.tasks) {
-            self.submissions[t_id] = new Array();
+            this.task_s[t_id] = this.historyStore.get_score_history_for_task(this.user_id, t_id);
+            this.task_r[t_id] = this.historyStore.get_rank_history_for_task(this.user_id, t_id);
+        }
+
+        this.contest_s = new Object();
+        this.contest_r = new Object();
+        for (var c_id in DataStore.contests) {
+            this.contest_s[c_id] = this.historyStore.get_score_history_for_contest(this.user_id, c_id);
+            this.contest_r[c_id] = this.historyStore.get_rank_history_for_contest(this.user_id, c_id);
+        }
+
+        this.global_s = this.historyStore.get_score_history(this.user_id);
+        this.global_r = this.historyStore.get_rank_history(this.user_id);
+
+        this.data_fetched += 1;
+        this.do_show();
+    }
+
+    private submissions_callback(data) {
+        this.submissions = new Object();
+        for (var t_id in DataStore.tasks) {
+            this.submissions[t_id] = new Array();
         }
         for (var i = 0; i < data.length; i += 1) {
             var submission = data[i];
-            self.submissions[submission['task']].push(submission);
+            this.submissions[submission['task']].push(submission);
         }
 
-        self.data_fetched += 1;
-        self.do_show();
-    };
+        this.data_fetched += 1;
+        this.do_show();
+    }
 
-    self.do_show = function () {
-        if (self.data_fetched == 2) {
-            self.f_name_label.text(self.user["f_name"]);
-            self.l_name_label.text(self.user["l_name"]);
-            self.face_image.attr("src", Config.get_face_url(self.user_id));
+    private do_show() {
+        if (this.data_fetched == 2) {
+            this.f_name_label.text(this.user["f_name"]);
+            this.l_name_label.text(this.user["l_name"]);
+            this.face_image.attr("src", Config.get_face_url(this.user_id));
 
-            if (self.user["team"]) {
-                self.team_label.text(DataStore.teams[self.user["team"]]["name"]);
-                self.flag_image.attr("src", Config.get_flag_url(self.user['team']));
-                self.flag_image.removeClass("hidden");
+            if (this.user["team"]) {
+                this.team_label.text(DataStore.teams[this.user["team"]]["name"]);
+                this.flag_image.attr("src", Config.get_flag_url(this.user['team']));
+                this.flag_image.removeClass("hidden");
             } else {
-                self.team_label.text("");
-                self.flag_image.addClass("hidden");
+                this.team_label.text("");
+                this.flag_image.addClass("hidden");
             }
 
             var s = "<tr class=\"global\"> \
                         <td class=\"name\">Global</td> \
-                        <td class=\"score\">" + (self.global_s.length > 0 ? round_to_str(self.global_s[self.global_s.length-1][1], DataStore.global_score_precision) : 0) + "</td> \
-                        <td class=\"rank\">" + (self.global_r.length > 0 ? self.global_r[self.global_r.length-1][1] : 1) + "</td> \
+                        <td class=\"score\">" + (this.global_s.length > 0 ? round_to_str(this.global_s[this.global_s.length-1][1], DataStore.global_score_precision) : 0) + "</td> \
+                        <td class=\"rank\">" + (this.global_r.length > 0 ? this.global_r[this.global_r.length-1][1] : 1) + "</td> \
                         <td class=\"btn\"><a>Show</a></td> \
                     </tr>";
 
@@ -185,8 +219,8 @@ var UserDetail = new function () {
 
                 s += "<tr class=\"contest\" data-contest=\"" + c_id +"\"> \
                          <td class=\"name\">" + contest['name'] + "</td> \
-                         <td class=\"score\">" + (self.contest_s[c_id].length > 0 ? round_to_str(self.contest_s[c_id][self.contest_s[c_id].length-1][1], contest["score_precision"]) : 0) + "</td> \
-                         <td class=\"rank\">" + (self.contest_r[c_id].length > 0 ? self.contest_r[c_id][self.contest_r[c_id].length-1][1] : 1) + "</td> \
+                         <td class=\"score\">" + (this.contest_s[c_id].length > 0 ? round_to_str(this.contest_s[c_id][this.contest_s[c_id].length-1][1], contest["score_precision"]) : 0) + "</td> \
+                         <td class=\"rank\">" + (this.contest_r[c_id].length > 0 ? this.contest_r[c_id][this.contest_r[c_id].length-1][1] : 1) + "</td> \
                          <td class=\"btn\"><a>Show</a></td> \
                       </tr>"
 
@@ -197,26 +231,26 @@ var UserDetail = new function () {
 
                     s += "<tr class=\"task\" data-task=\"" + t_id +"\"> \
                              <td class=\"name\">" + task['name'] + "</td> \
-                             <td class=\"score\">" + (self.task_s[t_id].length > 0 ? round_to_str(self.task_s[t_id][self.task_s[t_id].length-1][1], task["score_precision"]) : 0) + "</td> \
-                             <td class=\"rank\">" + (self.task_r[t_id].length > 0 ? self.task_r[t_id][self.task_r[t_id].length-1][1] : 1) + "</td> \
+                             <td class=\"score\">" + (this.task_s[t_id].length > 0 ? round_to_str(this.task_s[t_id][this.task_s[t_id].length-1][1], task["score_precision"]) : 0) + "</td> \
+                             <td class=\"rank\">" + (this.task_r[t_id].length > 0 ? this.task_r[t_id][this.task_r[t_id].length-1][1] : 1) + "</td> \
                              <td class=\"btn\"><a>Show</a></td> \
                           </tr>"
                 }
             }
 
-            self.navigator.html(s);
+            this.navigator.html(s);
 
-            self.active = null;
+            this.active = null;
 
-            $('tr.global td.btn', self.navigator).click();
+            $('tr.global td.btn', this.navigator).click();
 
             $("#UserDetail_bg").addClass("open");
         }
-    };
+    }
 
-    self.show_global = function () {
-        self.title_label.text("Global");
-        self.submission_table.html("");
+    private show_global() {
+        this.title_label.text("Global");
+        this.submission_table.html("");
 
         var intervals = new Array();
         var b = 0;
@@ -232,35 +266,35 @@ var UserDetail = new function () {
             intervals.push([b, e]);
         }
 
-        self.draw_charts(intervals, DataStore.global_max_score,
-                         self.global_s, self.global_r);
-    };
+        this.draw_charts(intervals, DataStore.global_max_score,
+                         this.global_s, this.global_r);
+    }
 
-    self.show_contest = function (contest_id) {
+    private show_contest(contest_id) {
         var contest = DataStore.contests[contest_id];
 
-        self.title_label.text(contest["name"]);
-        self.submission_table.html("");
+        this.title_label.text(contest["name"]);
+        this.submission_table.html("");
 
-        self.draw_charts([[contest["begin"], contest["end"]]], contest["max_score"],
-                         self.contest_s[contest_id], self.contest_r[contest_id]);
-    };
+        this.draw_charts([[contest["begin"], contest["end"]]], contest["max_score"],
+                         this.contest_s[contest_id], this.contest_r[contest_id]);
+    }
 
-    self.show_task = function (task_id) {
+    private show_task(task_id) {
         var task = DataStore.tasks[task_id];
         var contest = DataStore.contests[task["contest"]];
 
-        self.title_label.text(task["name"]);
-        self.submission_table.html(self.make_submission_table(task_id));
+        this.title_label.text(task["name"]);
+        this.submission_table.html(this.make_submission_table(task_id));
 
-        self.draw_charts([[contest["begin"], contest["end"]]], task["max_score"],
-                         self.task_s[task_id], self.task_r[task_id]);
-    };
+        this.draw_charts([[contest["begin"], contest["end"]]], task["max_score"],
+                         this.task_s[task_id], this.task_r[task_id]);
+    }
 
-    self.draw_charts = function (ranges, max_score, history_s, history_r) {
+    private draw_charts(ranges, max_score, history_s, history_r) {
         var users = DataStore.user_count;
 
-        Chart.draw_chart(self.score_chart, // canvas object
+        Chart.draw_chart(this.score_chart, // canvas object
             0, max_score, 0, 0, // y_min, y_max, x_default, h_default
             ranges, // intervals
             history_s, // data
@@ -268,7 +302,7 @@ var UserDetail = new function () {
             [max_score*1/4, // markers
              max_score*2/4,
              max_score*3/4]);
-        Chart.draw_chart(self.rank_chart, // canvas object
+        Chart.draw_chart(this.rank_chart, // canvas object
             users, 1, 1, users-1, // y_min, y_max, x_default, h_default
             ranges, // intervals
             history_r, // data
@@ -276,9 +310,9 @@ var UserDetail = new function () {
             [Math.ceil (users/12), // markers
              Math.ceil (users/4 ),
              Math.floor(users/2 )]);
-    };
+    }
 
-    self.make_submission_table = function (task_id) {
+    private make_submission_table(task_id) {
         var res = " \
 <table> \
     <thead> \
@@ -291,14 +325,14 @@ var UserDetail = new function () {
     </thead> \
     <tbody>";
 
-        if (self.submissions[task_id].length == 0) {
+        if (this.submissions[task_id].length == 0) {
             res += " \
         <tr> \
             <td colspan=\"" + (3 + DataStore.tasks[task_id]['extra_headers'].length) + "\">no submissions</td> \
         </tr>";
         } else {
-            for (var i in self.submissions[task_id]) {
-                var submission = self.submissions[task_id][i];
+            for (var i in this.submissions[task_id]) {
+                var submission = this.submissions[task_id][i];
                 const time_seconds = submission["time"] - DataStore.contests[DataStore.tasks[task_id]["contest"]]["begin"];
                 const time = format_time(time_seconds, false);
                 res += " \
@@ -314,16 +348,16 @@ var UserDetail = new function () {
     </tbody> \
 </table>";
         return res;
-    };
+    }
 
-    self.hide = function () {
-        if (self.get_current_hash() != "") {
+    private hide() {
+        if (this.get_current_hash() != "") {
             window.history.pushState(
                 {}, "", window.location.href.replace(/#.*$/, ''));
         }
         window.document.title = "Ranking";
         $("#UserDetail_bg").removeClass("open");
-    };
-};
+    }
+}
 
 export { UserDetail };
