@@ -34,7 +34,7 @@ import { UserDetail } from "./UserDetail";
 
 $(document).ready(function() {
     DataStore.init(function(){
-        HistoryStore.init();
+        HistoryStore.getInstance();
         UserDetail.init();
         TimeView.init();
         TeamSearch.init();

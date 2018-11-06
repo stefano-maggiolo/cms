@@ -27,6 +27,7 @@ var UserDetail = new function () {
     var self = this;
 
     self.init = function () {
+        self.historyStore = HistoryStore.getInstance();
         $("#UserDetail_bg").click(function (event) {
             if (event.target == event.currentTarget) {
                 self.hide();
@@ -107,7 +108,7 @@ var UserDetail = new function () {
         window.document.title =
             "Ranking - " + self.user["f_name"] + " " + self.user["l_name"];
 
-        HistoryStore.request_update(self.history_callback);
+        self.historyStore.request_update(self.history_callback);
 
         $.ajax({
             url: Config.get_submissions_url(self.user_id),
@@ -123,19 +124,19 @@ var UserDetail = new function () {
         self.task_s = new Object();
         self.task_r = new Object();
         for (var t_id in DataStore.tasks) {
-            self.task_s[t_id] = HistoryStore.get_score_history_for_task(self.user_id, t_id);
-            self.task_r[t_id] = HistoryStore.get_rank_history_for_task(self.user_id, t_id);
+            self.task_s[t_id] = self.historyStore.get_score_history_for_task(self.user_id, t_id);
+            self.task_r[t_id] = self.historyStore.get_rank_history_for_task(self.user_id, t_id);
         }
 
         self.contest_s = new Object();
         self.contest_r = new Object();
         for (var c_id in DataStore.contests) {
-            self.contest_s[c_id] = HistoryStore.get_score_history_for_contest(self.user_id, c_id);
-            self.contest_r[c_id] = HistoryStore.get_rank_history_for_contest(self.user_id, c_id);
+            self.contest_s[c_id] = self.historyStore.get_score_history_for_contest(self.user_id, c_id);
+            self.contest_r[c_id] = self.historyStore.get_rank_history_for_contest(self.user_id, c_id);
         }
 
-        self.global_s = HistoryStore.get_score_history(self.user_id);
-        self.global_r = HistoryStore.get_rank_history(self.user_id);
+        self.global_s = self.historyStore.get_score_history(self.user_id);
+        self.global_r = self.historyStore.get_rank_history(self.user_id);
 
         self.data_fetched += 1;
         self.do_show();
