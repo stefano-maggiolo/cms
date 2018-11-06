@@ -15,24 +15,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Chart = new function () {
-    var self = this;
-
-    self.draw_chart = function (canvas, y_min, y_max, y_def, h_def, x_int, data, color, marks) {
+class Chart {
+    public static draw_chart(
+        canvas: HTMLCanvasElement,
+        y_min: number,
+        y_max: number,
+        y_def: number,
+        h_def: number,
+        x_int: Array<[number, number]>,
+        data: Array<[number, number, number]>,
+        color: [number, number, number],
+        marks: Array<number>): void {
         // canvas is the context
-/*
-        canvas (GWTCanvas): the canvas this chart will be drawn on
-        y_min (float): the y value corresponding to the bottom of the chart
-        y_max (float): the y value corresponding to the top of the chart
+        /*
+        canvas: the canvas this chart will be drawn on
+        y_min: the y value corresponding to the bottom of the chart
+        y_max: the y value corresponding to the top of the chart
             (note: y_min can be grater than y_max - the chart will be upside-down)
-        y_def (float): the default y value (the line will start at that value)
-        h_def (float): the default height of the colored area
-        x_int (list of tuples of float): the list of x intervals to be drawn,
-            in the form [begin, end)
-        data (list of tuples of float): the data to be drawn, in the form (x, y, h)
-        color (tuple of int): the r, g and b components of the color for the line
-        marks (list of float): the y values at which horizontal lines will be drawn
-*/
+        y_def: the default y value (the line will start at that value)
+        h_def: the default height of the colored area
+        x_int: the list of x intervals to be drawn, in the form [begin, end)
+        data: the data to be drawn, in the form (x, y, h)
+        color: the r, g and b components of the color for the line
+        marks: the y values at which horizontal lines will be drawn
+        */
 
         // width and height
         var wid = canvas.width;
@@ -198,7 +204,7 @@ var Chart = new function () {
         }
         context.closePath();
         context.fill();
-    };
-};
+    }
+}
 
 export { Chart };
