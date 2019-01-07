@@ -1,4 +1,4 @@
-dist: trusty
+dist: xenial
 sudo: required
 
 language: python
@@ -14,7 +14,7 @@ addons:
   apt:
     packages:
       - build-essential
-      - php5-cli
+      - php-cli
       - haskell-platform
       - fp-compiler
       - postgresql-client
@@ -28,6 +28,9 @@ addons:
       - libyaml-dev
       - rustc
       - mono-mcs
+
+services:
+  - postgresql
 
 install:
   - pip install -r requirements.txt
